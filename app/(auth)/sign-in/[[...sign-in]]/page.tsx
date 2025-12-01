@@ -20,26 +20,46 @@ function SignInForm() {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("🚀 [LOGIN] Iniciando proceso de login...");
+    console.log("📧 [LOGIN] Email:", email);
+    console.log("🌐 [LOGIN] URL actual:", window.location.href);
+    console.log("🍪 [LOGIN] Cookies antes de signIn:", document.cookie);
+
     try {
+      console.log("⏳ [LOGIN] Llamando a signIn...");
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
+      console.log("📊 [LOGIN] Resultado de signIn:", {
+        ok: result?.ok,
+        error: result?.error,
+        status: result?.status,
+        url: result?.url,
+      });
+
       if (result?.error) {
+        console.error("❌ [LOGIN] Error en signIn:", result.error);
         toast.error("Credenziali non valide");
         setIsLoading(false);
         return;
       }
 
       if (result?.ok) {
+        console.log("✅ [LOGIN] signIn exitoso!");
         toast.success("Accesso effettuato con successo!");
+        
+        // Verificar cookies inmediatamente después de signIn
+        console.log("🍪 [LOGIN] Cookies después de signIn:", document.cookie);
+        const hasNextAuthCookie = document.cookie.includes("next-auth");
+        console.log("🍪 [LOGIN] ¿Cookie next-auth presente?", hasNextAuthCookie);
         
         // Obtener callbackUrl de los parámetros de búsqueda
         let callbackUrl = searchParams.get("callbackUrl");
         
-        console.log("🔍 callbackUrl original:", callbackUrl);
+        console.log("🔍 [LOGIN] callbackUrl original:", callbackUrl);
         
         // Decodificar URL si está codificada (ej: %2F -> /)
         if (callbackUrl) {
@@ -85,39 +105,80 @@ function SignInForm() {
           callbackUrl = "/" + callbackUrl;
         }
         
-        console.log("✅ Redirigiendo a:", callbackUrl);
+        console.log("✅ [LOGIN] Redirigiendo a:", callbackUrl);
         
         // IMPORTANTE: Cuando usamos redirect: false, NextAuth establece la sesión
         // pero el token JWT puede tardar un momento en estar disponible en las cookies.
         // El middleware verifica el token en las cookies, por lo que necesitamos
         // esperar un poco antes de redirigir para asegurar que el token esté disponible.
         
+        // Función helper para verificar cookies
+        const checkCookies = () => {
+          const cookies = document.cookie;
+          const hasNextAuthCookie = cookies.includes("next-auth");
+          const cookieNames = cookies.split(";").map(c => c.split("=")[0].trim());
+          console.log("🍪 [LOGIN] Estado de cookies:", {
+            todas: cookies,
+            tieneNextAuth: hasNextAuthCookie,
+            nombres: cookieNames,
+          });
+          return hasNextAuthCookie;
+        };
+        
+        // Verificar cookies inmediatamente
+        checkCookies();
+        
         // Forzar actualización de la sesión primero
+        console.log("⏳ [LOGIN] Obteniendo sesión (intento 1)...");
         try {
-          await getSession();
-          console.log("✅ Sesión obtenida");
+          const session1 = await getSession();
+          console.log("📊 [LOGIN] Sesión obtenida (intento 1):", {
+            tieneSesion: !!session1,
+            userId: session1?.user?.id,
+            email: session1?.user?.email,
+            role: session1?.user?.role,
+          });
+          checkCookies();
         } catch (error) {
-          console.warn("⚠️ Error al obtener sesión:", error);
+          console.warn("⚠️ [LOGIN] Error al obtener sesión (intento 1):", error);
         }
         
         // IMPORTANTE: En producción, las cookies pueden tardar más en establecerse
         // Aumentamos el delay a 1000ms para dar tiempo suficiente
         // También verificamos que la sesión esté disponible antes de redirigir
+        console.log("⏳ [LOGIN] Esperando 1000ms antes de verificar sesión...");
         setTimeout(async () => {
           try {
+            console.log("⏳ [LOGIN] Verificando sesión (intento 2)...");
+            checkCookies();
+            
             // Verificar que la sesión esté disponible
             const session = await getSession();
+            console.log("📊 [LOGIN] Sesión obtenida (intento 2):", {
+              tieneSesion: !!session,
+              userId: session?.user?.id,
+              email: session?.user?.email,
+              role: session?.user?.role,
+            });
+            
             if (!session) {
-              console.warn("⚠️ Sesión no disponible aún, esperando más tiempo...");
+              console.warn("⚠️ [LOGIN] Sesión no disponible aún, esperando más tiempo...");
+              checkCookies();
               // Esperar otros 500ms si la sesión no está disponible
               setTimeout(() => {
-                console.log("🔄 Ejecutando redirección a:", callbackUrl);
+                console.log("🔄 [LOGIN] Ejecutando redirección (sin sesión verificada) a:", callbackUrl);
+                console.log("🍪 [LOGIN] Cookies finales antes de redirigir:", document.cookie);
+                console.log("🌐 [LOGIN] Redirigiendo desde:", window.location.href);
+                console.log("🌐 [LOGIN] Redirigiendo a:", callbackUrl);
                 window.location.href = callbackUrl;
               }, 500);
               return;
             }
             
-            console.log("✅ Sesión verificada, redirigiendo a:", callbackUrl);
+            console.log("✅ [LOGIN] Sesión verificada, redirigiendo a:", callbackUrl);
+            checkCookies();
+            console.log("🌐 [LOGIN] Redirigiendo desde:", window.location.href);
+            console.log("🌐 [LOGIN] Redirigiendo a:", callbackUrl);
             // Usar window.location.href para forzar recarga completa
             // Esto es más confiable que router.push() porque:
             // 1. Fuerza una recarga completa de la página
@@ -125,10 +186,12 @@ function SignInForm() {
             // 3. No depende del estado del router de Next.js
             window.location.href = callbackUrl;
           } catch (error) {
-            console.error("❌ Error al verificar sesión:", error);
+            console.error("❌ [LOGIN] Error al verificar sesión:", error);
+            checkCookies();
             // Fallback: redirigir de todas formas después de un delay adicional
             setTimeout(() => {
-              console.log("🔄 Ejecutando redirección (fallback) a:", callbackUrl);
+              console.log("🔄 [LOGIN] Ejecutando redirección (fallback) a:", callbackUrl);
+              console.log("🍪 [LOGIN] Cookies en fallback:", document.cookie);
               window.location.href = callbackUrl;
             }, 500);
           }
@@ -174,10 +237,12 @@ function SignInForm() {
               </Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
                 disabled={isLoading}
                 className="border-[#0b3d4d]/20 focus:border-[#0b3d4d] focus:ring-[#0b3d4d]/10"
@@ -190,10 +255,12 @@ function SignInForm() {
               </Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
                 disabled={isLoading}
                 className="border-[#0b3d4d]/20 focus:border-[#0b3d4d] focus:ring-[#0b3d4d]/10"
@@ -202,7 +269,12 @@ function SignInForm() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded" />
+                <input 
+                  type="checkbox" 
+                  id="remember"
+                  name="remember"
+                  className="rounded" 
+                />
                 <span className="text-gray-600">Ricordami</span>
               </label>
               <a
