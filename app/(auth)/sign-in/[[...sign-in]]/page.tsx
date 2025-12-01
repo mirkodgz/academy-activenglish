@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -20,183 +20,70 @@ function SignInForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log("🚀 [LOGIN] Iniciando proceso de login...");
-    console.log("📧 [LOGIN] Email:", email);
-    console.log("🌐 [LOGIN] URL actual:", window.location.href);
-    console.log("🍪 [LOGIN] Cookies antes de signIn:", document.cookie);
-
     try {
-      console.log("⏳ [LOGIN] Llamando a signIn...");
-      const result = await signIn("credentials", {
+      console.log("🚀 [LOGIN] Iniciando proceso de login...");
+      console.log("📧 [LOGIN] Email:", email);
+      console.log("🌐 [LOGIN] URL actual:", window.location.href);
+      
+      // Obtener y normalizar callbackUrl
+      let callbackUrl = searchParams.get("callbackUrl");
+      if (callbackUrl) {
+        try {
+          callbackUrl = decodeURIComponent(callbackUrl);
+        } catch {
+          // Si falla el decode, usar el valor original
+        }
+      }
+      if (!callbackUrl || callbackUrl === "" || callbackUrl === "null" || callbackUrl === "undefined") {
+        callbackUrl = "/";
+      }
+      
+      // Normalizar callbackUrl
+      try {
+        if (callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")) {
+          const url = new URL(callbackUrl);
+          callbackUrl = url.pathname + url.search;
+        } else if (callbackUrl.includes(window.location.origin)) {
+          const url = new URL(callbackUrl);
+          callbackUrl = url.pathname + url.search;
+        }
+      } catch (error) {
+        console.warn("⚠️ [LOGIN] Error parsing callbackUrl:", error);
+        callbackUrl = "/";
+      }
+      
+      if (callbackUrl.startsWith("/sign-in") || callbackUrl.startsWith("/sign-up")) {
+        callbackUrl = "/";
+      }
+      
+      if (!callbackUrl.startsWith("/")) {
+        callbackUrl = "/" + callbackUrl;
+      }
+      
+      console.log("✅ [LOGIN] CallbackUrl final:", callbackUrl);
+      
+      // IMPORTANTE: Usar redirect: true para que NextAuth establezca las cookies correctamente
+      // Cuando redirect: true, NextAuth maneja automáticamente la redirección y las cookies
+      console.log("⏳ [LOGIN] Llamando a signIn con redirect: true...");
+      
+      await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       });
 
-      console.log("📊 [LOGIN] Resultado de signIn:", {
-        ok: result?.ok,
-        error: result?.error,
-        status: result?.status,
-        url: result?.url,
-      });
-
-      if (result?.error) {
-        console.error("❌ [LOGIN] Error en signIn:", result.error);
-        toast.error("Credenziali non valide");
-        setIsLoading(false);
-        return;
-      }
-
-      if (result?.ok) {
-        console.log("✅ [LOGIN] signIn exitoso!");
-        toast.success("Accesso effettuato con successo!");
-        
-        // Verificar cookies inmediatamente después de signIn
-        console.log("🍪 [LOGIN] Cookies después de signIn:", document.cookie);
-        const hasNextAuthCookie = document.cookie.includes("next-auth");
-        console.log("🍪 [LOGIN] ¿Cookie next-auth presente?", hasNextAuthCookie);
-        
-        // Obtener callbackUrl de los parámetros de búsqueda
-        let callbackUrl = searchParams.get("callbackUrl");
-        
-        console.log("🔍 [LOGIN] callbackUrl original:", callbackUrl);
-        
-        // Decodificar URL si está codificada (ej: %2F -> /)
-        if (callbackUrl) {
-          try {
-            callbackUrl = decodeURIComponent(callbackUrl);
-            console.log("🔍 callbackUrl decodificado:", callbackUrl);
-          } catch (error) {
-            console.warn("⚠️ Error decodificando callbackUrl:", error);
-            // Si falla el decode, usar el valor original
-          }
-        }
-        
-        // Si no hay callbackUrl o está vacío, usar "/"
-        if (!callbackUrl || callbackUrl === "" || callbackUrl === "null" || callbackUrl === "undefined") {
-          callbackUrl = "/";
-        }
-        
-        // Normalizar callbackUrl: extraer pathname si es una URL completa
-        try {
-          // Si es una URL completa (empieza con http:// o https://)
-          if (callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")) {
-            const url = new URL(callbackUrl);
-            callbackUrl = url.pathname + url.search;
-          }
-          // Si es una URL relativa pero contiene el dominio
-          else if (callbackUrl.includes(window.location.origin)) {
-            const url = new URL(callbackUrl);
-            callbackUrl = url.pathname + url.search;
-          }
-        } catch (error) {
-          // Si falla el parseo, usar "/" como fallback
-          console.warn("⚠️ Error parsing callbackUrl:", error);
-          callbackUrl = "/";
-        }
-        
-        // Validar que callbackUrl no sea una ruta de autenticación
-        if (callbackUrl.startsWith("/sign-in") || callbackUrl.startsWith("/sign-up")) {
-          callbackUrl = "/";
-        }
-        
-        // Asegurar que callbackUrl empiece con "/"
-        if (!callbackUrl.startsWith("/")) {
-          callbackUrl = "/" + callbackUrl;
-        }
-        
-        console.log("✅ [LOGIN] Redirigiendo a:", callbackUrl);
-        
-        // IMPORTANTE: Cuando usamos redirect: false, NextAuth establece la sesión
-        // pero el token JWT puede tardar un momento en estar disponible en las cookies.
-        // El middleware verifica el token en las cookies, por lo que necesitamos
-        // esperar un poco antes de redirigir para asegurar que el token esté disponible.
-        
-        // Función helper para verificar cookies
-        const checkCookies = () => {
-          const cookies = document.cookie;
-          const hasNextAuthCookie = cookies.includes("next-auth");
-          const cookieNames = cookies.split(";").map(c => c.split("=")[0].trim());
-          console.log("🍪 [LOGIN] Estado de cookies:", {
-            todas: cookies,
-            tieneNextAuth: hasNextAuthCookie,
-            nombres: cookieNames,
-          });
-          return hasNextAuthCookie;
-        };
-        
-        // Verificar cookies inmediatamente
-        checkCookies();
-        
-        // Forzar actualización de la sesión primero
-        console.log("⏳ [LOGIN] Obteniendo sesión (intento 1)...");
-        try {
-          const session1 = await getSession();
-          console.log("📊 [LOGIN] Sesión obtenida (intento 1):", {
-            tieneSesion: !!session1,
-            userId: session1?.user?.id,
-            email: session1?.user?.email,
-            role: session1?.user?.role,
-          });
-          checkCookies();
-        } catch (error) {
-          console.warn("⚠️ [LOGIN] Error al obtener sesión (intento 1):", error);
-        }
-        
-        // IMPORTANTE: En producción, las cookies pueden tardar más en establecerse
-        // Aumentamos el delay a 1000ms para dar tiempo suficiente
-        // También verificamos que la sesión esté disponible antes de redirigir
-        console.log("⏳ [LOGIN] Esperando 1000ms antes de verificar sesión...");
-        setTimeout(async () => {
-          try {
-            console.log("⏳ [LOGIN] Verificando sesión (intento 2)...");
-            checkCookies();
-            
-            // Verificar que la sesión esté disponible
-            const session = await getSession();
-            console.log("📊 [LOGIN] Sesión obtenida (intento 2):", {
-              tieneSesion: !!session,
-              userId: session?.user?.id,
-              email: session?.user?.email,
-              role: session?.user?.role,
-            });
-            
-            if (!session) {
-              console.warn("⚠️ [LOGIN] Sesión no disponible aún, esperando más tiempo...");
-              checkCookies();
-              // Esperar otros 500ms si la sesión no está disponible
-              setTimeout(() => {
-                console.log("🔄 [LOGIN] Ejecutando redirección (sin sesión verificada) a:", callbackUrl);
-                console.log("🍪 [LOGIN] Cookies finales antes de redirigir:", document.cookie);
-                console.log("🌐 [LOGIN] Redirigiendo desde:", window.location.href);
-                console.log("🌐 [LOGIN] Redirigiendo a:", callbackUrl);
-                window.location.href = callbackUrl;
-              }, 500);
-              return;
-            }
-            
-            console.log("✅ [LOGIN] Sesión verificada, redirigiendo a:", callbackUrl);
-            checkCookies();
-            console.log("🌐 [LOGIN] Redirigiendo desde:", window.location.href);
-            console.log("🌐 [LOGIN] Redirigiendo a:", callbackUrl);
-            // Usar window.location.href para forzar recarga completa
-            // Esto es más confiable que router.push() porque:
-            // 1. Fuerza una recarga completa de la página
-            // 2. El middleware puede ver el token JWT en las cookies
-            // 3. No depende del estado del router de Next.js
-            window.location.href = callbackUrl;
-          } catch (error) {
-            console.error("❌ [LOGIN] Error al verificar sesión:", error);
-            checkCookies();
-            // Fallback: redirigir de todas formas después de un delay adicional
-            setTimeout(() => {
-              console.log("🔄 [LOGIN] Ejecutando redirección (fallback) a:", callbackUrl);
-              console.log("🍪 [LOGIN] Cookies en fallback:", document.cookie);
-              window.location.href = callbackUrl;
-            }, 500);
-          }
-        }, 1000);
-      }
+      // Si llegamos aquí (no debería pasar con redirect: true), mostrar mensaje y redirigir
+      console.log("⚠️ [LOGIN] signIn no redirigió automáticamente, usando fallback");
+      toast.success("Accesso effettuato con successo!");
+      
+      // Fallback: redirigir manualmente
+      setTimeout(() => {
+        console.log("🔄 [LOGIN] Ejecutando redirección (fallback) a:", callbackUrl);
+        window.location.href = callbackUrl;
+      }, 300);
+      
+      return;
     } catch (error) {
       console.error("Error durante l'accesso:", error);
       toast.error("Si è verificato un errore durante l'accesso");
