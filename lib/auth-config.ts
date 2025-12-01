@@ -6,8 +6,23 @@ import type { JWT } from "next-auth/jwt";
 import type { Session, User } from "next-auth";
 
 // Asegurar que la variable de entorno esté disponible antes de usar Prisma
-if (!process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
-  process.env.activenglish_PRISMA_DATABASE_URL = process.env.DATABASE_URL;
+// Mapear desde diferentes variantes de nombres de variables
+if (!process.env.activenglish_PRISMA_DATABASE_URL) {
+  if (process.env.DATABASE_URL) {
+    process.env.activenglish_PRISMA_DATABASE_URL = process.env.DATABASE_URL;
+  }
+  else if (process.env.activenglish_POSTGRES_URL) {
+    process.env.activenglish_PRISMA_DATABASE_URL = process.env.activenglish_POSTGRES_URL;
+  }
+  else if (process.env.activeenglish_DATABASE_URL) {
+    process.env.activenglish_PRISMA_DATABASE_URL = process.env.activeenglish_DATABASE_URL;
+  }
+}
+
+// Validar NEXTAUTH_SECRET
+if (!process.env.NEXTAUTH_SECRET) {
+  console.error('⚠️  WARNING: NEXTAUTH_SECRET no está configurada. NextAuth puede no funcionar correctamente.');
+  console.error('   Configura NEXTAUTH_SECRET en Vercel (Settings → Environment Variables)');
 }
 
 export const authOptions = {
