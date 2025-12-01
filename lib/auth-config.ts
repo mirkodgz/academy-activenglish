@@ -5,6 +5,11 @@ import { UserRole } from "@prisma/client";
 import type { JWT } from "next-auth/jwt";
 import type { Session, User } from "next-auth";
 
+// Asegurar que la variable de entorno esté disponible antes de usar Prisma
+if (!process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
+  process.env.activenglish_PRISMA_DATABASE_URL = process.env.DATABASE_URL;
+}
+
 export const authOptions = {
   // No usar adapter con JWT strategy - el adapter es solo para database sessions
   providers: [
