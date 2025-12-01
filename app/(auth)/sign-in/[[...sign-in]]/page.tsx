@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 export default function SignInPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,14 +29,48 @@ export default function SignInPage() {
 
       if (result?.error) {
         toast.error("Credenziali non valide");
-      } else {
+        setIsLoading(false);
+      } else if (result?.ok) {
         toast.success("Accesso effettuato con successo!");
-        router.push("/");
-        router.refresh();
+        
+        // Obtener callbackUrl de los parámetros de búsqueda o usar "/" por defecto
+        let callbackUrl = searchParams.get("callbackUrl") || "/";
+        
+        // Normalizar callbackUrl: extraer pathname si es una URL completa
+        try {
+          // Si es una URL completa (empieza con http:// o https://)
+          if (callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")) {
+            const url = new URL(callbackUrl);
+            callbackUrl = url.pathname + url.search;
+          }
+          // Si es una URL relativa pero contiene el dominio
+          else if (callbackUrl.includes(window.location.origin)) {
+            const url = new URL(callbackUrl);
+            callbackUrl = url.pathname + url.search;
+          }
+        } catch (error) {
+          // Si falla el parseo, usar "/" como fallback
+          console.warn("Error parsing callbackUrl:", error);
+          callbackUrl = "/";
+        }
+        
+        // Validar que callbackUrl no sea una ruta de autenticación
+        if (callbackUrl.startsWith("/sign-in") || callbackUrl.startsWith("/sign-up")) {
+          callbackUrl = "/";
+        }
+        
+        // Asegurar que callbackUrl empiece con "/"
+        if (!callbackUrl.startsWith("/")) {
+          callbackUrl = "/" + callbackUrl;
+        }
+        
+        // Usar window.location para forzar una navegación completa
+        // Esto asegura que la sesión se refresque correctamente
+        window.location.href = callbackUrl;
       }
-    } catch {
+    } catch (error) {
+      console.error("Error durante l'accesso:", error);
       toast.error("Si è verificato un errore durante l'accesso");
-    } finally {
       setIsLoading(false);
     }
   };
