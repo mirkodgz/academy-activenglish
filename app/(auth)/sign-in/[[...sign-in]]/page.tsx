@@ -5,13 +5,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { signIn, getSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 function SignInForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -87,10 +88,30 @@ function SignInForm() {
         
         console.log("✅ Redirigiendo a:", callbackUrl);
         
-        // Forzar recarga completa de la página para asegurar que la sesión se establezca
-        // Usar window.location.replace para evitar que el usuario pueda volver atrás
-        // Esto es más confiable que window.location.href en producción
-        window.location.replace(callbackUrl);
+        // Esperar un momento para que la sesión se establezca completamente
+        // Luego actualizar la sesión y redirigir
+        setTimeout(async () => {
+          try {
+            // Forzar actualización de la sesión
+            await getSession();
+            
+            // Usar router.push para navegación del lado del cliente
+            // Si falla, usar window.location como fallback
+            router.push(callbackUrl);
+            
+            // Fallback: si después de 1 segundo no se ha redirigido, forzar con window.location
+            setTimeout(() => {
+              if (window.location.pathname === "/sign-in") {
+                console.warn("⚠️ Router.push no funcionó, usando window.location como fallback");
+                window.location.href = callbackUrl;
+              }
+            }, 1000);
+          } catch (error) {
+            console.error("Error al redirigir:", error);
+            // Fallback: usar window.location si hay error
+            window.location.href = callbackUrl;
+          }
+        }, 200);
       }
     } catch (error) {
       console.error("Error durante l'accesso:", error);

@@ -16,31 +16,15 @@ import {
 import Link from "next/link";
 import { routes, routesTeacher, routesStudent } from "./AppSidebar.data";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { getUserRole } from "@/lib/auth-mock";
+import { useSession } from "next-auth/react";
+import { UserRole } from "@prisma/client";
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const [userRole, setUserRole] = useState<"ADMIN" | "STUDENT" | null>(null);
-
-  useEffect(() => {
-    // Función para actualizar el rol
-    const updateRole = () => {
-      getUserRole().then((role) => {
-        setUserRole(role);
-      });
-    };
-
-    // Obtener el rol inicial
-    updateRole();
-
-    // Escuchar cambios de rol
-    window.addEventListener("role-changed", updateRole);
-    
-    return () => {
-      window.removeEventListener("role-changed", updateRole);
-    };
-  }, []);
+  const { data: session, status } = useSession();
+  
+  // Obtener el rol del usuario desde la sesión
+  const userRole = session?.user?.role as UserRole | null;
 
   return (
     <Sidebar collapsible="icon">
@@ -78,7 +62,7 @@ export function AppSidebar() {
           </SidebarMenu>
 
           {/* Rutas para Estudiantes */}
-          {userRole === "STUDENT" && (
+          {status === "authenticated" && userRole === "STUDENT" && (
             <SidebarMenu className="mt-4">
               <SidebarGroupLabel>Studente</SidebarGroupLabel>
               <SidebarMenuItem>
@@ -102,7 +86,7 @@ export function AppSidebar() {
           )}
 
           {/* Rutas para Administradores */}
-          {userRole === "ADMIN" && (
+          {status === "authenticated" && userRole === "ADMIN" && (
             <SidebarMenu className="mt-4">
               <SidebarGroupLabel>Admin</SidebarGroupLabel>
               <SidebarMenuItem>

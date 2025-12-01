@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Payments, SuscriptorsChart, TotalRevenue } from "./components";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AnalyticsPage() {
   const user = await getCurrentUser();
-  const userIsTeacher = await isTeacher();
+  const userIsAdmin = await isAdmin();
 
-  // Verificar que el usuario es TEACHER
-  if (!user || !userIsTeacher) {
+  // Verificar que el usuario es ADMIN (teacher)
+  if (!user || !userIsAdmin) {
     redirect("/");
   }
 

@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
 import { getSusbcriptorsByMonth } from "@/actions/getSuscribersByMonth";
-import { getAuth, isTeacher } from "@/lib/auth-mock";
+import { getUserId, isAdmin } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const { userId } = await getAuth();
-    const userIsTeacher = await isTeacher();
+    const userId = await getUserId();
+    const userIsAdmin = await isAdmin();
 
-    // Solo TEACHER puede ver analytics
-    if (!userId || !userIsTeacher) {
+    // Solo ADMIN puede ver analytics
+    if (!userId || !userIsAdmin) {
       return new NextResponse("Unauthorized - Solo i professori possono vedere le analitiche", {
         status: 403,
       });
     }
 
-    // TEACHER ve analytics de todos los cursos
+    // ADMIN ve analytics de todos los cursos
     const data = await getSusbcriptorsByMonth(userId);
     return NextResponse.json(data);
   } catch (error) {
