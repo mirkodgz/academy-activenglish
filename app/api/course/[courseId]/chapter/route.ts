@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isTeacher } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
@@ -8,19 +8,27 @@ export async function POST(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
     const { courseId } = await params;
+
+    // Solo TEACHER puede crear capítulos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono creare capitoli", {
+        status: 403,
+      });
+    }
 
     const { title } = await req.json();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!title) {
+      return new NextResponse("Il titolo del capitolo è obbligatorio", { status: 400 });
     }
 
+    // Verificar que el curso existe (TEACHER puede crear capítulos en cualquier curso)
     const course = await prisma.course.findUnique({
       where: {
         id: courseId,
-        userId: userId,
       },
     });
 

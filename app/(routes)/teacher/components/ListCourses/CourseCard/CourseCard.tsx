@@ -1,13 +1,14 @@
 import Image from "next/image";
 
 import { CourseCardProps } from "./CourseCard.types";
-import { ChartNoAxesColumn, DollarSign } from "lucide-react";
+import { ChartNoAxesColumn, DollarSign, User } from "lucide-react";
 import { Actions } from "./Actions";
 
 export function CourseCard(props: CourseCardProps) {
   const { course } = props;
   const { id, title, price, level, imageUrl, description, isPublished } =
     course;
+  // const { user } = course; // TODO: Descomentar después de migración
 
   return (
     <div className="relative">
@@ -56,6 +57,17 @@ export function CourseCard(props: CourseCardProps) {
                 <span className="text-gray-400">Livello:</span>
                 <span className="font-semibold">{level || "Principiante"}</span>
               </div>
+
+              {/* TODO: Mostrar creador después de ejecutar migración de Prisma */}
+              {/* {user && (
+                <div className="flex gap-1 items-center text-sm mt-2">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-400">Creato da:</span>
+                  <span className="font-semibold">
+                    {user.firstName || ""} {user.lastName || ""}
+                  </span>
+                </div>
+              )} */}
             </div>
           </div>
         </div>

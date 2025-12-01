@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
 
 import prisma from "@/lib/prisma";
 
@@ -11,10 +12,12 @@ export default async function ChapterPage({
 }) {
   const { courseId, chapterId } = await params;
 
-  const { userId } = await auth();
+  const user = await getCurrentUser();
+  const userIsTeacher = await isTeacher();
 
-  if (!userId) {
-    return <p>Non hai i permessi per visualizzare questo capitolo. </p>;
+  // Verificar que el usuario es TEACHER
+  if (!user || !userIsTeacher) {
+    redirect("/");
   }
 
   const chapter = await prisma.chapter.findUnique({

@@ -1,6 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "./auth-mock";
 
 export async function getUserData() {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   return user;
 }

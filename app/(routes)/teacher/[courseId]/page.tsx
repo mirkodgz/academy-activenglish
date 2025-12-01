@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
 
 import prisma from "@/lib/prisma";
 
@@ -16,21 +17,30 @@ export default async function CoursePage({
   params: Promise<{ courseId: string }>;
 }) {
   const { courseId } = await params;
-  const { userId } = await auth();
+  const user = await getCurrentUser();
+  const userIsTeacher = await isTeacher();
 
-  if (!userId) {
-    return <p>Non hai i permessi per visualizzare questo corso. </p>;
+  // Verificar que el usuario es TEACHER
+  if (!user || !userIsTeacher) {
+    redirect("/");
   }
 
+  // TEACHER puede editar cualquier curso (no solo los suyos)
   const course = await prisma.course.findUnique({
     where: {
       id: courseId,
-      userId: userId,
     },
     include: {
       chapters: {
         orderBy: {
           position: "asc",
+        },
+      },
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
         },
       },
     },

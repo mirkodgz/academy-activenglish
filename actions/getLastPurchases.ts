@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { clerkClient } from "@clerk/nextjs/server";
 
 export async function getLastPurchases(userId: string, limit: number = 10) {
   const purchases = await prisma.purchase.findMany({
@@ -22,18 +21,14 @@ export async function getLastPurchases(userId: string, limit: number = 10) {
     },
   });
 
-  const clerk = await clerkClient();
-
-  const purchasesWithEmails = await Promise.all(
-    purchases.map(async (purchase) => {
-      const user = await clerk.users.getUser(purchase.userId);
-
-      return {
-        ...purchase,
-        userEmail: user.emailAddresses[0].emailAddress || "No email",
-      };
-    })
-  );
+  // Mock: Retornar emails mock para desarrollo
+  // TODO: Reemplazar con sistema de autenticación real cuando se implemente
+  const purchasesWithEmails = purchases.map((purchase) => {
+    return {
+      ...purchase,
+      userEmail: `user-${purchase.userId.slice(-4)}@example.com`, // Email mock
+    };
+  });
 
   return purchasesWithEmails;
 }

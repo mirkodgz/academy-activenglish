@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
@@ -7,12 +7,11 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = await getAuth(); // Mock para desarrollo
   const { courseId } = await params;
 
-  if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
+  // Validación removida para desarrollo frontend
+  // TODO: Restaurar validación cuando se implemente autenticación real
 
   try {
     const existingPurchase = await prisma.purchase.findUnique({
@@ -30,7 +29,7 @@ export async function POST(
 
     await prisma.purchase.create({
       data: {
-        userId,
+        userId: userId || "mock-user-id-123",
         courseId,
         price: 0,
       },

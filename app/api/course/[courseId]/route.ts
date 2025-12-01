@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isTeacher } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
@@ -8,18 +8,22 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
     const { courseId } = await params;
     const values = await req.json();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Solo TEACHER puede editar cursos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono modificare i corsi", {
+        status: 403,
+      });
     }
 
+    // TEACHER puede editar cualquier curso (no solo los suyos)
     const course = await prisma.course.update({
       where: {
         id: courseId,
-        userId: userId,
       },
       data: {
         ...values,
@@ -39,18 +43,22 @@ export async function DELETE(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Solo TEACHER puede eliminar cursos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono eliminare i corsi", {
+        status: 403,
+      });
     }
 
     const { courseId } = await params;
 
+    // TEACHER puede eliminar cualquier curso (no solo los suyos)
     const course = await prisma.course.delete({
       where: {
         id: courseId,
-        userId: userId,
       },
     });
 

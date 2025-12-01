@@ -1,22 +1,21 @@
 import prisma from "@/lib/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-mock";
 import { Chapter, Course } from "@prisma/client";
 
 export const getPurchasedCourses = async (): Promise<
   (Course & { chapters: Chapter[] })[] | null
 > => {
-  const user = await currentUser();
+  const user = await getCurrentUser(); // Mock para desarrollo
 
-  if (!user?.id) {
-    throw new Error("No se ha identificado el usuario");
-  }
+  // Validación removida para desarrollo frontend
+  // TODO: Restaurar validación cuando se implemente autenticación real
 
   try {
     const purchasedCourses = await prisma.course.findMany({
       where: {
         purchases: {
           some: {
-            userId: user.id,
+            userId: user?.id || "mock-user-id-123",
           },
         },
         isPublished: true,

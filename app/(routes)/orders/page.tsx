@@ -1,6 +1,7 @@
+import { redirect } from "next/navigation";
 import { ReceiptText } from "lucide-react";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser, isStudent, isAdmin } from "@/lib/auth-mock";
 
 import { getUserReceipts } from "@/actions/getReceipStripe";
 import { getUserPurchases } from "@/actions/getUserPurchases";
@@ -8,10 +9,13 @@ import { getUserPurchases } from "@/actions/getUserPurchases";
 import { OrdersList } from "./components";
 
 export default async function OrdersPage() {
-  const user = await currentUser();
+  const user = await getCurrentUser();
+  const userIsStudent = await isStudent();
+  const userIsAdmin = await isAdmin();
 
-  if (!user) {
-    return <p className="text-xs">Non autenticato</p>;
+  // Permitir acceso a STUDENT y ADMIN
+  if (!user || (!userIsStudent && !userIsAdmin)) {
+    redirect("/");
   }
 
   const purchases = await getUserPurchases(user.id);

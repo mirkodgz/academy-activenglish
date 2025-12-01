@@ -1,17 +1,33 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/api/uploadthing(.*)",
-  "/api/webhook",
-]);
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ 
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET 
+  });
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  const { pathname } = request.nextUrl;
+
+  // Rutas públicas (no requieren autenticación)
+  const publicRoutes = ["/sign-in", "/sign-up", "/api/auth"];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+  // Si está en una ruta pública, permitir acceso
+  if (isPublicRoute) {
+    return NextResponse.next();
   }
-});
+
+  // Si no hay token y no está en ruta pública, redirigir al login
+  if (!token) {
+    const signInUrl = new URL("/sign-in", request.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

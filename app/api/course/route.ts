@@ -1,21 +1,29 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isTeacher } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
+
+    // Solo TEACHER puede crear cursos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono creare corsi", {
+        status: 403,
+      });
+    }
 
     const { courseName, slug } = await req.json();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!courseName || !slug) {
+      return new NextResponse("Nome del corso e slug sono obbligatori", { status: 400 });
     }
 
     const course = await prisma.course.create({
       data: {
-        userId,
+        userId: userId,
         title: courseName,
         slug,
       },

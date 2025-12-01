@@ -1,17 +1,16 @@
 import prisma from "@/lib/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-mock";
 
 export const getUserProgress = async () => {
   try {
-    const user = await currentUser();
+    const user = await getCurrentUser(); // Mock para desarrollo
 
-    if (!user?.id) {
-      throw new Error("No se ha identificado el usuario");
-    }
+    // Validación removida para desarrollo frontend
+    // TODO: Restaurar validación cuando se implemente autenticación real
 
     const progress = await prisma.userProgress.findMany({
       where: {
-        userId: user.id,
+        userId: user?.id || "mock-user-id-123",
       },
     });
 

@@ -14,11 +14,33 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { routes, routesTeacher } from "./AppSidebar.data";
+import { routes, routesTeacher, routesStudent } from "./AppSidebar.data";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { getUserRole } from "@/lib/auth-mock";
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const [userRole, setUserRole] = useState<"ADMIN" | "STUDENT" | null>(null);
+
+  useEffect(() => {
+    // Función para actualizar el rol
+    const updateRole = () => {
+      getUserRole().then((role) => {
+        setUserRole(role);
+      });
+    };
+
+    // Obtener el rol inicial
+    updateRole();
+
+    // Escuchar cambios de rol
+    window.addEventListener("role-changed", updateRole);
+    
+    return () => {
+      window.removeEventListener("role-changed", updateRole);
+    };
+  }, []);
 
   return (
     <Sidebar collapsible="icon">
@@ -54,26 +76,54 @@ export function AppSidebar() {
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
-          <SidebarMenu className="mt-4">
-            <SidebarGroupLabel>Profesor</SidebarGroupLabel>
-            <SidebarMenuItem>
-              <SidebarMenuSub>
-                {routesTeacher.map((item) => (
-                  <SidebarMenuSubItem key={item.title}>
-                    <SidebarMenuSubButton
-                      href={item.url}
-                      className="hover:bg-muted transition"
-                    >
-                      <div className="p-1 rounded-lg text-white bg-[#60CB58]">
-                        <item.icon className="w-4 h-4" />
-                      </div>
-                      {item.title}
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-          </SidebarMenu>
+
+          {/* Rutas para Estudiantes */}
+          {userRole === "STUDENT" && (
+            <SidebarMenu className="mt-4">
+              <SidebarGroupLabel>Studente</SidebarGroupLabel>
+              <SidebarMenuItem>
+                <SidebarMenuSub>
+                  {routesStudent.map((item) => (
+                    <SidebarMenuSubItem key={item.title}>
+                      <SidebarMenuSubButton
+                        href={item.url}
+                        className="hover:bg-muted transition"
+                      >
+                        <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
+                          <item.icon className="w-4 h-4" />
+                        </div>
+                        {item.title}
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          )}
+
+          {/* Rutas para Administradores */}
+          {userRole === "ADMIN" && (
+            <SidebarMenu className="mt-4">
+              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarMenuItem>
+                <SidebarMenuSub>
+                  {routesTeacher.map((item) => (
+                    <SidebarMenuSubItem key={item.title}>
+                      <SidebarMenuSubButton
+                        href={item.url}
+                        className="hover:bg-muted transition"
+                      >
+                        <div className="p-1 rounded-lg text-white bg-[#60CB58]">
+                          <item.icon className="w-4 h-4" />
+                        </div>
+                        {item.title}
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          )}
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>

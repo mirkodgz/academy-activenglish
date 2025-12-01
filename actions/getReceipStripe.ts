@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { getStripeCustomerId } from "./getStripeCustomerId";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-03-31.basil",
+  apiVersion: "2025-08-27.basil",
 });
 
 export const getUserReceipts = async (userId: string) => {

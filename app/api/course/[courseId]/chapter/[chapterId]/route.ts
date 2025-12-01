@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isTeacher } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
@@ -8,24 +8,27 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
     const { courseId, chapterId } = await params;
     const values = await req.json();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Solo TEACHER puede editar capítulos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono modificare i capitoli", {
+        status: 403,
+      });
     }
 
-    // Validar que el usuario es propietario del curso
+    // Verificar que el curso existe
     const course = await prisma.course.findUnique({
       where: {
         id: courseId,
-        userId: userId,
       },
     });
 
     if (!course) {
-      return new NextResponse("Unauthorized - Course not found or not owned", { status: 403 });
+      return new NextResponse("Course not found", { status: 404 });
     }
 
     const chapter = await prisma.chapter.update({
@@ -51,23 +54,26 @@ export async function DELETE(
   { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
     const { courseId, chapterId } = await params;
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Solo TEACHER puede eliminar capítulos
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono eliminare i capitoli", {
+        status: 403,
+      });
     }
 
-    // Validar que el usuario es propietario del curso
+    // Verificar que el curso existe
     const course = await prisma.course.findUnique({
       where: {
         id: courseId,
-        userId: userId,
       },
     });
 
     if (!course) {
-      return new NextResponse("Unauthorized - Course not found or not owned", { status: 403 });
+      return new NextResponse("Course not found", { status: 404 });
     }
 
     const chapter = await prisma.chapter.delete({

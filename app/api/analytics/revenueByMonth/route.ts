@@ -1,15 +1,20 @@
 import { getRevenueByMonth } from "@/actions/getRevenueByMonth";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isTeacher } from "@/lib/auth-mock";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsTeacher = await isTeacher();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Solo TEACHER puede ver analytics
+    if (!userId || !userIsTeacher) {
+      return new NextResponse("Unauthorized - Solo i professori possono vedere le analitiche", {
+        status: 403,
+      });
     }
 
+    // TEACHER ve analytics de todos los cursos (no solo los suyos)
     const data = await getRevenueByMonth(userId);
     return NextResponse.json(data);
   } catch (error) {

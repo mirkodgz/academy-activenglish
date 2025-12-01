@@ -1,4 +1,5 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { getCurrentUser, isAdmin } from "@/lib/auth-mock";
 
 import prisma from "@/lib/prisma";
 
@@ -6,16 +7,30 @@ import { Header } from "./components";
 import { ListCourses } from "./components/ListCourses";
 
 export default async function TeacherPage() {
-  const user = await currentUser();
+  const user = await getCurrentUser();
+  const userIsAdmin = await isAdmin();
 
-  if (!user) {
-    return <p>Non autenticato</p>;
+  // Verificar que el usuario es ADMIN
+  if (!user || !userIsAdmin) {
+    redirect("/");
   }
 
+  // ADMIN puede ver TODOS los cursos (no solo los suyos)
+  // Nota: El include de 'user' se agregará después de ejecutar la migración de Prisma
   const courses = await prisma.course.findMany({
-    where: {
-      userId: user.id,
+    orderBy: {
+      createdAt: "desc",
     },
+    // TODO: Descomentar después de ejecutar: npx prisma migrate dev
+    // include: {
+    //   user: {
+    //     select: {
+    //       firstName: true,
+    //       lastName: true,
+    //       email: true,
+    //     },
+    //   },
+    // },
   });
 
   return (

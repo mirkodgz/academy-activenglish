@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth, isAdmin } from "@/lib/auth-mock";
 
 import { NextResponse } from "next/server";
 
@@ -8,23 +8,31 @@ export async function PUT(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId } = await getAuth();
+    const userIsAdmin = await isAdmin();
     const { courseId } = await params;
+
+    // Solo ADMIN puede reordenar capítulos
+    if (!userId || !userIsAdmin) {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono riordinare i capitoli", {
+        status: 403,
+      });
+    }
 
     const { list } = await req.json();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!list || !Array.isArray(list)) {
+      return new NextResponse("Lista di capitoli non valida", { status: 400 });
     }
 
-    const ownCourse = await prisma.course.findUnique({
+    // Verificar que el curso existe
+    const course = await prisma.course.findUnique({
       where: {
         id: courseId,
-        userId: userId,
       },
     });
 
-    if (!ownCourse) {
+    if (!course) {
       return new NextResponse("Course not found", { status: 404 });
     }
 

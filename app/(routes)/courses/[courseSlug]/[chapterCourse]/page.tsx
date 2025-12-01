@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-mock";
 
 import { getCourseBySlug } from "@/actions/getCourseBySlug";
 import { getIsPurchasedCourse } from "@/actions/getPurchasedCourse";
@@ -15,11 +15,10 @@ export default async function ChapterCoursePage({
 }) {
   const { courseSlug, chapterCourse } = await params;
 
-  const user = await currentUser();
+  const user = await getCurrentUser(); // Mock para desarrollo
 
-  if (!user) {
-    return redirect("/");
-  }
+  // Validación removida para desarrollo frontend
+  // TODO: Restaurar validación cuando se implemente autenticación real
 
   const infoCourse = await getCourseBySlug(courseSlug);
   const userProgress = await getUserProgress();
@@ -28,7 +27,7 @@ export default async function ChapterCoursePage({
     return redirect(`/courses/${courseSlug}`);
   }
 
-  const isPurchasedCourse = await getIsPurchasedCourse(user.id, infoCourse.id);
+  const isPurchasedCourse = await getIsPurchasedCourse(user?.id || "mock-user-id-123", infoCourse.id);
 
   const videoUrl = infoCourse.chapters.find(
     (chapter) => chapter.id === chapterCourse

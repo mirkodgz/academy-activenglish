@@ -4,7 +4,7 @@ import { getCourseBySlug } from "@/actions/getCourseBySlug";
 import { getPurchaseCourseById } from "@/actions/getPurchaseCourseById";
 
 import { BreadCrumbCourse, CourseContent, HeroBlockCourse } from "./components";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-mock";
 
 export default async function CoursePage({
   params,
@@ -21,13 +21,12 @@ export default async function CoursePage({
 
   const { title, id } = infoCourse;
 
-  const user = await currentUser();
+  const user = await getCurrentUser(); // Mock para desarrollo
 
-  if (!user) {
-    redirect("/");
-  }
+  // Validación removida para desarrollo frontend
+  // TODO: Restaurar validación cuando se implemente autenticación real
 
-  const purchaseCourse = await getPurchaseCourseById(user.id, id);
+  const purchaseCourse = await getPurchaseCourseById(user?.id || "mock-user-id-123", id);
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -1,7 +1,5 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
-
 import { formatPrice } from "@/lib/formatPrice";
 
 import { Progress } from "@/components/ui/progress";
@@ -13,19 +11,18 @@ import axios from "axios";
 export function ProgressCourse(props: ProgressCourseProps) {
   const { courseId, totalChapters, price } = props;
 
-  const { user } = useUser();
+  // Mock: Usuario siempre disponible para desarrollo
+  const mockUserId = "mock-user-id-123";
 
   const [progressCourse, setProgressCourse] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchProgress = async () => {
-      if (!user?.id) return setLoading(false);
-
       try {
         const { data } = await axios.post("/api/get-user-progress", {
           courseId,
-          userId: user.id,
+          userId: mockUserId,
         });
 
         setProgressCourse(data.progress);
@@ -37,11 +34,7 @@ export function ProgressCourse(props: ProgressCourseProps) {
     };
 
     fetchProgress();
-  }, [courseId, user?.id]);
-
-  if (!user) {
-    return <p className="text-xs mt-2">Non autenticato</p>;
-  }
+  }, [courseId]);
 
   if (loading) return <p className="textxs mt-2">Caricamento progresso...</p>;
 

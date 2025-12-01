@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getAuth, getCurrentUser } from "@/lib/auth-mock";
 
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
@@ -10,14 +10,13 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId } = await getAuth(); // Mock para desarrollo
   const { courseId } = await params;
 
-  if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
+  // Validación removida para desarrollo frontend
+  // TODO: Restaurar validación cuando se implemente autenticación real
 
-  const user = await currentUser();
+  const user = await getCurrentUser();
 
   try {
     const course = await prisma.course.findUnique({
@@ -41,7 +40,7 @@ export async function POST(
     const purchase = await prisma.purchase.findUnique({
       where: {
         userId_courseId: {
-          userId,
+          userId: userId || "mock-user-id-123",
           courseId,
         },
       },
@@ -70,7 +69,7 @@ export async function POST(
 
     let stripeCustomer = await prisma.stripeCustomer.findUnique({
       where: {
-        userId: userId,
+        userId: userId || "mock-user-id-123",
       },
       select: {
         stripeCustomerId: true,
@@ -84,7 +83,7 @@ export async function POST(
 
       stripeCustomer = await prisma.stripeCustomer.create({
         data: {
-          userId: userId,
+          userId: userId || "mock-user-id-123",
           stripeCustomerId: customer.id,
         },
       });
@@ -98,7 +97,7 @@ export async function POST(
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${course.slug}?cancelled=1`,
       metadata: {
         courseId: course.id,
-        userId: userId,
+        userId: userId || "mock-user-id-123",
         price: course.price ? course.price.toString() : "0",
       },
     });
