@@ -95,7 +95,7 @@ export const authOptions = {
     signIn: "/sign-in",
     signOut: "/sign-out",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-change-in-production",
   debug: process.env.NODE_ENV === "development",
 };
 
