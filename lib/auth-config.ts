@@ -32,8 +32,7 @@ if (!process.env.NEXTAUTH_SECRET) {
 
 export const authOptions = {
   // Configuración importante para Vercel/producción
-  trustHost: true, // Necesario para que NextAuth funcione correctamente en Vercel
-  useSecureCookies: process.env.NODE_ENV === "production", // HTTPS en producción
+  trustHost: true,
   // No usar adapter con JWT strategy - el adapter es solo para database sessions
   providers: [
     CredentialsProvider({

@@ -21,72 +21,23 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log("🚀 [LOGIN] Iniciando proceso de login...");
-      console.log("📧 [LOGIN] Email:", email);
-      console.log("🌐 [LOGIN] URL actual:", window.location.href);
+      // Obtener callbackUrl simple
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
       
-      // Obtener y normalizar callbackUrl
-      let callbackUrl = searchParams.get("callbackUrl");
-      if (callbackUrl) {
-        try {
-          callbackUrl = decodeURIComponent(callbackUrl);
-        } catch {
-          // Si falla el decode, usar el valor original
-        }
-      }
-      if (!callbackUrl || callbackUrl === "" || callbackUrl === "null" || callbackUrl === "undefined") {
-        callbackUrl = "/";
-      }
-      
-      // Normalizar callbackUrl
-      try {
-        if (callbackUrl.startsWith("http://") || callbackUrl.startsWith("https://")) {
-          const url = new URL(callbackUrl);
-          callbackUrl = url.pathname + url.search;
-        } else if (callbackUrl.includes(window.location.origin)) {
-          const url = new URL(callbackUrl);
-          callbackUrl = url.pathname + url.search;
-        }
-      } catch (error) {
-        console.warn("⚠️ [LOGIN] Error parsing callbackUrl:", error);
-        callbackUrl = "/";
-      }
-      
-      if (callbackUrl.startsWith("/sign-in") || callbackUrl.startsWith("/sign-up")) {
-        callbackUrl = "/";
-      }
-      
-      if (!callbackUrl.startsWith("/")) {
-        callbackUrl = "/" + callbackUrl;
-      }
-      
-      console.log("✅ [LOGIN] CallbackUrl final:", callbackUrl);
-      
-      // IMPORTANTE: Usar redirect: true para que NextAuth establezca las cookies correctamente
-      // Cuando redirect: true, NextAuth maneja automáticamente la redirección y las cookies
-      console.log("⏳ [LOGIN] Llamando a signIn con redirect: true...");
-      
+      // Login simple: dejar que NextAuth maneje todo
       await signIn("credentials", {
         email,
         password,
         redirect: true,
-        callbackUrl: callbackUrl,
+        callbackUrl: callbackUrl === "/" ? "/" : callbackUrl,
       });
-
-      // Si llegamos aquí (no debería pasar con redirect: true), mostrar mensaje y redirigir
-      console.log("⚠️ [LOGIN] signIn no redirigió automáticamente, usando fallback");
-      toast.success("Accesso effettuato con successo!");
       
-      // Fallback: redirigir manualmente
-      setTimeout(() => {
-        console.log("🔄 [LOGIN] Ejecutando redirección (fallback) a:", callbackUrl);
-        window.location.href = callbackUrl;
-      }, 300);
-      
-      return;
+      // Si llegamos aquí, algo salió mal
+      toast.error("Errore durante l'accesso");
+      setIsLoading(false);
     } catch (error) {
-      console.error("Error durante l'accesso:", error);
-      toast.error("Si è verificato un errore durante l'accesso");
+      console.error("Error:", error);
+      toast.error("Credenziali non valide");
       setIsLoading(false);
     }
   };
