@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, getSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 function SignInForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -88,30 +87,31 @@ function SignInForm() {
         
         console.log("✅ Redirigiendo a:", callbackUrl);
         
-        // Esperar un momento para que la sesión se establezca completamente
-        // Luego actualizar la sesión y redirigir
-        setTimeout(async () => {
-          try {
-            // Forzar actualización de la sesión
-            await getSession();
-            
-            // Usar router.push para navegación del lado del cliente
-            // Si falla, usar window.location como fallback
-            router.push(callbackUrl);
-            
-            // Fallback: si después de 1 segundo no se ha redirigido, forzar con window.location
-            setTimeout(() => {
-              if (window.location.pathname === "/sign-in") {
-                console.warn("⚠️ Router.push no funcionó, usando window.location como fallback");
-                window.location.href = callbackUrl;
-              }
-            }, 1000);
-          } catch (error) {
-            console.error("Error al redirigir:", error);
-            // Fallback: usar window.location si hay error
-            window.location.href = callbackUrl;
-          }
-        }, 200);
+        // IMPORTANTE: Cuando usamos redirect: false, NextAuth establece la sesión
+        // pero el token JWT puede tardar un momento en estar disponible en las cookies.
+        // El middleware verifica el token en las cookies, por lo que necesitamos
+        // esperar un poco antes de redirigir para asegurar que el token esté disponible.
+        
+        // Forzar actualización de la sesión primero
+        try {
+          await getSession();
+          console.log("✅ Sesión obtenida");
+        } catch (error) {
+          console.warn("⚠️ Error al obtener sesión:", error);
+        }
+        
+        // Esperar un momento para que el token JWT se establezca en las cookies
+        // Luego usar window.location.href para forzar una recarga completa
+        // Esto asegura que el middleware vea el token en las cookies
+        setTimeout(() => {
+          console.log("🔄 Ejecutando redirección a:", callbackUrl);
+          // Usar window.location.href para forzar recarga completa
+          // Esto es más confiable que router.push() porque:
+          // 1. Fuerza una recarga completa de la página
+          // 2. El middleware puede ver el token JWT en las cookies
+          // 3. No depende del estado del router de Next.js
+          window.location.href = callbackUrl;
+        }, 500);
       }
     } catch (error) {
       console.error("Error durante l'accesso:", error);
