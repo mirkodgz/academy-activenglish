@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, Search, GraduationCap, BookOpen, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -9,13 +9,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -23,48 +16,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { setMockUserRole, type UserRole } from "@/lib/auth-mock";
 
 export function Navbar() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [currentRole, setCurrentRole] = useState<UserRole>("ADMIN");
-  const [userName, setUserName] = useState("Admin Demo");
+  const [userName, setUserName] = useState("Usuario");
 
   useEffect(() => {
     // Si hay sesión real, usar datos de la sesión
     if (session?.user) {
       setUserName(session.user.name || session.user.email || "Usuario");
-      setCurrentRole((session.user.role as UserRole) || "STUDENT");
       return;
     }
 
-    // Si no hay sesión, usar mock para desarrollo
-    const stored = localStorage.getItem("mock-user-role");
-    const role = (stored === "ADMIN" || stored === "STUDENT") ? stored : "ADMIN";
-    setCurrentRole(role);
-    setUserName(role === "ADMIN" ? "Admin Demo" : "Estudiante Demo");
-
-    // Escuchar cambios de rol
-    const handleRoleChange = () => {
-      const newRole = localStorage.getItem("mock-user-role") as UserRole;
-      if (newRole === "ADMIN" || newRole === "STUDENT") {
-        setCurrentRole(newRole);
-        setUserName(newRole === "ADMIN" ? "Admin Demo" : "Estudiante Demo");
-        router.refresh();
-      }
-    };
-
-    window.addEventListener("role-changed", handleRoleChange);
-    return () => window.removeEventListener("role-changed", handleRoleChange);
-  }, [router, session]);
-
-  const handleRoleChange = (newRole: UserRole) => {
-    setMockUserRole(newRole);
-    setCurrentRole(newRole);
-    setUserName(newRole === "ADMIN" ? "Admin Demo" : "Estudiante Demo");
-    router.refresh();
-  };
+    // Si no hay sesión, usar valor por defecto
+    setUserName("Usuario");
+  }, [session]);
 
   const handleSignOut = async () => {
     try {
@@ -103,12 +70,13 @@ export function Navbar() {
           />
         </div>
 
-        <Button variant="outline">
+        {/* Icono de notificaciones - Comentado temporalmente */}
+        {/* <Button variant="outline">
           <BellRing />
-        </Button>
+        </Button> */}
 
-        {/* Selector de rol para desarrollo */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#0b3d4d]/20 bg-[#0b3d4d]/5">
+        {/* Selector de rol - Removido porque ya tenemos roles en la sesión */}
+        {/* <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#0b3d4d]/20 bg-[#0b3d4d]/5">
           <Select value={currentRole} onValueChange={handleRoleChange}>
             <SelectTrigger className="w-[140px] h-8 border-0 bg-transparent focus:ring-0">
               <SelectValue>
@@ -139,7 +107,7 @@ export function Navbar() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {/* Dropdown de perfil de usuario */}
         <DropdownMenu>

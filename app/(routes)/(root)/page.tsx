@@ -10,7 +10,11 @@ export default async function Home() {
   // Verificar sesión - el middleware ya redirige, pero esto es una capa extra de seguridad
   const session = await auth();
   
+  // El middleware ya maneja la redirección, así que solo verificamos sin redirigir
+  // para evitar loops de redirección
   if (!session) {
+    // Si no hay sesión, el middleware ya debería haber redirigido
+    // Pero por seguridad, redirigir sin callbackUrl para evitar loops
     redirect("/sign-in");
   }
 

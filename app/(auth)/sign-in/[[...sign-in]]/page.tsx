@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-export default function SignInPage() {
+function SignInForm() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -30,11 +30,32 @@ export default function SignInPage() {
       if (result?.error) {
         toast.error("Credenziali non valide");
         setIsLoading(false);
-      } else if (result?.ok) {
+        return;
+      }
+
+      if (result?.ok) {
         toast.success("Accesso effettuato con successo!");
         
-        // Obtener callbackUrl de los parámetros de búsqueda o usar "/" por defecto
-        let callbackUrl = searchParams.get("callbackUrl") || "/";
+        // Obtener callbackUrl de los parámetros de búsqueda
+        let callbackUrl = searchParams.get("callbackUrl");
+        
+        console.log("🔍 callbackUrl original:", callbackUrl);
+        
+        // Decodificar URL si está codificada (ej: %2F -> /)
+        if (callbackUrl) {
+          try {
+            callbackUrl = decodeURIComponent(callbackUrl);
+            console.log("🔍 callbackUrl decodificado:", callbackUrl);
+          } catch (error) {
+            console.warn("⚠️ Error decodificando callbackUrl:", error);
+            // Si falla el decode, usar el valor original
+          }
+        }
+        
+        // Si no hay callbackUrl o está vacío, usar "/"
+        if (!callbackUrl || callbackUrl === "" || callbackUrl === "null" || callbackUrl === "undefined") {
+          callbackUrl = "/";
+        }
         
         // Normalizar callbackUrl: extraer pathname si es una URL completa
         try {
@@ -50,7 +71,7 @@ export default function SignInPage() {
           }
         } catch (error) {
           // Si falla el parseo, usar "/" como fallback
-          console.warn("Error parsing callbackUrl:", error);
+          console.warn("⚠️ Error parsing callbackUrl:", error);
           callbackUrl = "/";
         }
         
@@ -64,9 +85,12 @@ export default function SignInPage() {
           callbackUrl = "/" + callbackUrl;
         }
         
-        // Usar window.location para forzar una navegación completa
-        // Esto asegura que la sesión se refresque correctamente
-        window.location.href = callbackUrl;
+        console.log("✅ Redirigiendo a:", callbackUrl);
+        
+        // Forzar recarga completa de la página para asegurar que la sesión se establezca
+        // Usar window.location.replace para evitar que el usuario pueda volver atrás
+        // Esto es más confiable que window.location.href en producción
+        window.location.replace(callbackUrl);
       }
     } catch (error) {
       console.error("Error durante l'accesso:", error);
@@ -183,5 +207,42 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-md mx-auto">
+        <div className="flex flex-col items-center gap-4 mb-2">
+          <div className="relative w-20 h-20">
+            <Image
+              src="/logoactiveenglish.png"
+              alt="Active English Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="text-center">
+            <h1 className="font-bold text-4xl text-[#0b3d4d] mb-2">
+              Benvenuto
+            </h1>
+            <p className="text-lg text-gray-600">
+              Accedi per continuare al tuo account
+            </p>
+          </div>
+        </div>
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-lg border border-[#0b3d4d]/10 p-8">
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-[#0b3d4d]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SignInForm />
+    </Suspense>
   );
 }
