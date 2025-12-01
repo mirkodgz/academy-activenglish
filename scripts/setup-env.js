@@ -29,9 +29,14 @@ if (fs.existsSync(envLocalPath)) {
   });
 }
 
-// Mapear DATABASE_URL a activenglish_PRISMA_DATABASE_URL si no existe (solo en local)
-if (!process.env.VERCEL && !process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
+// Mapear DATABASE_URL a activenglish_PRISMA_DATABASE_URL si no existe
+// Funciona tanto en local como en Vercel
+if (!process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
   process.env.activenglish_PRISMA_DATABASE_URL = process.env.DATABASE_URL;
-  console.log('✅ Mapeado DATABASE_URL → activenglish_PRISMA_DATABASE_URL (local)');
+  if (process.env.VERCEL) {
+    console.log('✅ Mapeado DATABASE_URL → activenglish_PRISMA_DATABASE_URL (Vercel)');
+  } else {
+    console.log('✅ Mapeado DATABASE_URL → activenglish_PRISMA_DATABASE_URL (local)');
+  }
 }
 

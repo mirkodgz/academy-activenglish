@@ -29,15 +29,31 @@ if (fs.existsSync(envLocalPath)) {
   });
 }
 
-// Mapear DATABASE_URL a activenglish_PRISMA_DATABASE_URL si no existe (solo en local)
-if (!process.env.VERCEL && !process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
+// Mapear DATABASE_URL a activenglish_PRISMA_DATABASE_URL si no existe
+// Funciona tanto en local como en Vercel
+if (!process.env.activenglish_PRISMA_DATABASE_URL && process.env.DATABASE_URL) {
   process.env.activenglish_PRISMA_DATABASE_URL = process.env.DATABASE_URL;
+  if (process.env.VERCEL) {
+    console.log('✅ Mapeado DATABASE_URL → activenglish_PRISMA_DATABASE_URL (Vercel)');
+  } else {
+    console.log('✅ Mapeado DATABASE_URL → activenglish_PRISMA_DATABASE_URL (local)');
+  }
+}
+
+// Verificar que la variable de entorno esté disponible
+if (!process.env.activenglish_PRISMA_DATABASE_URL) {
+  console.error('❌ Error: activenglish_PRISMA_DATABASE_URL no está configurada');
+  console.error('   Asegúrate de configurar DATABASE_URL o activenglish_PRISMA_DATABASE_URL en Vercel');
+  process.exit(1);
 }
 
 // Ejecutar el comando de Prisma con las variables de entorno
 const args = process.argv.slice(2);
 const command = args[0] || 'migrate';
 const subcommand = args[1] || 'deploy';
+
+console.log(`🚀 Ejecutando: prisma ${command} ${subcommand}`);
+console.log(`📦 Variable de entorno: activenglish_PRISMA_DATABASE_URL está configurada`);
 
 const prismaCmd = spawn('npx', ['prisma', command, subcommand, ...args.slice(2)], {
   stdio: 'inherit',
@@ -46,6 +62,11 @@ const prismaCmd = spawn('npx', ['prisma', command, subcommand, ...args.slice(2)]
 });
 
 prismaCmd.on('close', (code) => {
+  if (code === 0) {
+    console.log('✅ Migraciones ejecutadas correctamente');
+  } else {
+    console.error(`❌ Error al ejecutar migraciones (código: ${code})`);
+  }
   process.exit(code || 0);
 });
 
