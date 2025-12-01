@@ -1,12 +1,12 @@
 import { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import NextAuth from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 
-const { auth } = NextAuth(authOptions);
-
-// Export auth for use in server components
-export { auth };
+// Helper para obtener sesión (compatible con v4)
+export async function auth() {
+  return await getServerSession(authOptions);
+}
 
 export interface SessionUser {
   id: string;

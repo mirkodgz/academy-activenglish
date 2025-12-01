@@ -31,8 +31,6 @@ if (!process.env.NEXTAUTH_SECRET) {
 }
 
 export const authOptions = {
-  // Configuración importante para Vercel/producción
-  trustHost: true,
   // No usar adapter con JWT strategy - el adapter es solo para database sessions
   providers: [
     CredentialsProvider({
@@ -41,7 +39,7 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: { email?: string; password?: string } | undefined) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
