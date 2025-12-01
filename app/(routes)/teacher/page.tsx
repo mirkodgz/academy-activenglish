@@ -6,6 +6,8 @@ import prisma from "@/lib/prisma";
 import { Header } from "./components";
 import { ListCourses } from "./components/ListCourses";
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeacherPage() {
   const user = await getCurrentUser();
   const userIsAdmin = await isAdmin();

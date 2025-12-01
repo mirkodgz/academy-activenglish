@@ -18,6 +18,11 @@ export async function POST(
 
   const user = await getCurrentUser();
 
+  // Si Stripe no está configurado, retornar error
+  if (!stripe) {
+    return new NextResponse("Stripe not configured", { status: 500 });
+  }
+
   try {
     const course = await prisma.course.findUnique({
       where: {

@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { CourseCardProps } from "./CourseCard.types";
-import { ChartNoAxesColumn, DollarSign, User } from "lucide-react";
+import { ChartNoAxesColumn, DollarSign } from "lucide-react";
 import { Actions } from "./Actions";
 
 export function CourseCard(props: CourseCardProps) {

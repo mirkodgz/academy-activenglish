@@ -1,16 +1,24 @@
 import Stripe from "stripe";
 import { getStripeCustomerId } from "./getStripeCustomerId";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-08-27.basil",
-});
+// Stripe es opcional - solo se inicializa si está configurado
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-08-27.basil",
+    })
+  : null;
 
 export const getUserReceipts = async (userId: string) => {
   try {
+    // Si Stripe no está configurado, retornar array vacío
+    if (!stripe) {
+      return [];
+    }
+
     const stripeCustomerId = await getStripeCustomerId(userId);
 
     if (!stripeCustomerId) {
-      throw new Error("No se ha encontrado el customerId");
+      return [];
     }
 
     const paymentsIntents = await stripe.paymentIntents.list({

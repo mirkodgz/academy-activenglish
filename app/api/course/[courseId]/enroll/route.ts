@@ -14,10 +14,11 @@ export async function POST(
   // TODO: Restaurar validación cuando se implemente autenticación real
 
   try {
+    const userIdString = userId || "mock-user-id-123";
     const existingPurchase = await prisma.purchase.findUnique({
       where: {
         userId_courseId: {
-          userId,
+          userId: userIdString,
           courseId,
         },
       },
@@ -29,7 +30,7 @@ export async function POST(
 
     await prisma.purchase.create({
       data: {
-        userId: userId || "mock-user-id-123",
+        userId: userIdString,
         courseId,
         price: 0,
       },

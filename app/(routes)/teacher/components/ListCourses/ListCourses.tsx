@@ -17,7 +17,7 @@ export function ListCourses(props: ListCoursesProps) {
               Nessun corso creato
             </h3>
             <p className="text-gray-500 max-w-md">
-              Inizia creando il tuo primo corso! Clicca su "Crea corso" per
+              Inizia creando il tuo primo corso! Clicca su &quot;Crea corso&quot; per
               iniziare.
             </p>
           </div>

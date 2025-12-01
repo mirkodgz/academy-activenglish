@@ -6,6 +6,11 @@ import { stripe } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
+  // Si Stripe no está configurado, retornar 200 (webhook deshabilitado)
+  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return new NextResponse("Stripe not configured", { status: 200 });
+  }
+
   const body = await req.text();
   const headerList = await headers();
   const signature = headerList.get("stripe-signature") as string;
@@ -16,7 +21,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch {
     return new NextResponse("Webhook error", { status: 400 });

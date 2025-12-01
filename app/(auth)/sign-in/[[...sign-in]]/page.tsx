@@ -34,7 +34,7 @@ export default function SignInPage() {
         router.push("/");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       toast.error("Si è verificato un errore durante l'accesso");
     } finally {
       setIsLoading(false);

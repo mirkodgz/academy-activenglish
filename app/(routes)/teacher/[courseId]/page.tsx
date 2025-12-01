@@ -11,6 +11,8 @@ import {
   HeaderCourse,
 } from "./components";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CoursePage({
   params,
 }: {

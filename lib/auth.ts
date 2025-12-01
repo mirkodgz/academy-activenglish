@@ -1,6 +1,12 @@
-import { auth } from "@/app/api/auth/[...nextauth]/route";
 import { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/auth-config";
+
+const { auth } = NextAuth(authOptions);
+
+// Export auth for use in server components
+export { auth };
 
 export interface SessionUser {
   id: string;
@@ -69,7 +75,7 @@ export async function getUserId(): Promise<string | null> {
  */
 export async function getUserRole(): Promise<UserRole | null> {
   const session = await auth();
-  return (session?.user as any)?.role || null;
+  return (session?.user as { role?: UserRole })?.role || null;
 }
 
 /**

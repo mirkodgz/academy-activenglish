@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, User, Search, GraduationCap, BookOpen, LogOut } from "lucide-react";
+import { BellRing, Search, GraduationCap, BookOpen, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -27,7 +27,7 @@ import { setMockUserRole, type UserRole } from "@/lib/auth-mock";
 
 export function Navbar() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [currentRole, setCurrentRole] = useState<UserRole>("ADMIN");
   const [userName, setUserName] = useState("Admin Demo");
 

@@ -19,7 +19,7 @@ export function ExploreCourses() {
             <p className="text-balance max-w-2xl">
               Inizia a imparare a programmare da zero con questi corsi. Non
               hai bisogno di esperienza precedente, non hai bisogno di un computer
-              all'ultima tecnologia. Hai solo bisogno di tanta voglia e un buon caffè ☕️
+              all&apos;ultima tecnologia. Hai solo bisogno di tanta voglia e un buon caffè ☕️
             </p>
             <Button className="w-fit" onClick={() => router.push("/courses")}>
               Inizia ad imparare

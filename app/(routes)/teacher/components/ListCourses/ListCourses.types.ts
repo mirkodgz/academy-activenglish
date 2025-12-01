@@ -1,4 +1,4 @@
-import { Course, User } from "@prisma/client";
+import { Course } from "@prisma/client";
 
 export type CourseWithCreator = Course & {
   user?: {

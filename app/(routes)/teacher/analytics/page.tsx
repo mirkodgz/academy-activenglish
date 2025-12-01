@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
 import { Payments, SuscriptorsChart, TotalRevenue } from "./components";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AnalyticsPage() {
   const user = await getCurrentUser();
   const userIsTeacher = await isTeacher();

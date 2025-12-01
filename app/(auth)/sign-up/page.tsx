@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,7 +60,7 @@ export default function SignUpPage() {
 
       toast.success("Registrazione completata! Ora puoi accedere.");
       router.push("/sign-in");
-    } catch (error) {
+    } catch {
       toast.error("Si è verificato un errore durante la registrazione");
     } finally {
       setIsLoading(false);
@@ -210,12 +211,12 @@ export default function SignUpPage() {
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-500">
           Hai già un account?{" "}
-          <a
+          <Link
             href="/sign-in"
             className="font-semibold text-[#0b3d4d] hover:text-[#0a3542] transition-colors underline-offset-4 hover:underline"
           >
             Accedi qui
-          </a>
+          </Link>
         </p>
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
           <div className="h-px w-12 bg-gray-300"></div>

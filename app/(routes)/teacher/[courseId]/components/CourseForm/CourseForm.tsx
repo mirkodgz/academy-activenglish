@@ -73,7 +73,7 @@ export function CourseForm(props: CourseFormProps) {
                     <Input placeholder="Corso di ReactJS" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Questo è ciò che l'utente vedrà come titolo del corso.
+                    Questo è ciò che l&apos;utente vedrà come titolo del corso.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

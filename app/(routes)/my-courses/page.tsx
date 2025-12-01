@@ -4,6 +4,8 @@ import { ListCourses } from "@/components/Shared";
 import { getCurrentUser, isStudent } from "@/lib/auth-mock";
 import { BookOpen } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function MyCoursesPage() {
   const user = await getCurrentUser();
   const userIsStudent = await isStudent();

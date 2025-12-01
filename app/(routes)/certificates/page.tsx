@@ -7,6 +7,8 @@ import { CoursesList } from "./components/CoursesList";
 import prisma from "@/lib/prisma";
 import { TeacherCertificatesList } from "./components/TeacherCertificatesList";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CertificatesPage() {
   const user = await getCurrentUser();
   const userIsStudent = await isStudent();

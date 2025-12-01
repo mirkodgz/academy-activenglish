@@ -86,7 +86,7 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
               <FormItem>
                 <FormLabel>Descrizione del capitolo</FormLabel>
                 <FormControl>
-                  <EditorDescription {...field} />
+                  <EditorDescription {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

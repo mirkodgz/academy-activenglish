@@ -35,9 +35,6 @@ export function FormCreateCourse() {
     },
   });
 
-  // Auto-generar slug desde el nombre del curso
-  const courseName = form.watch("courseName");
-  
   const generateSlug = (text: string) => {
     return text
       .toLowerCase()
@@ -70,9 +67,9 @@ export function FormCreateCourse() {
       setTimeout(() => {
         router.push(`/teacher/${res.data.id}`);
       }, 500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      const errorMessage = error?.response?.data || "Si è verificato un errore";
+      const errorMessage = (error as { response?: { data?: string } })?.response?.data || "Si è verificato un errore";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -125,7 +122,7 @@ export function FormCreateCourse() {
                 />
               </FormControl>
               <FormDescription className="text-gray-500">
-                L'URL univoco del corso (si genera automaticamente dal nome).
+                L&apos;URL univoco del corso (si genera automaticamente dal nome).
                 Usa solo lettere minuscole, numeri e trattini.
               </FormDescription>
               <FormMessage />

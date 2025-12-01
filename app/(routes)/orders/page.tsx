@@ -8,6 +8,8 @@ import { getUserPurchases } from "@/actions/getUserPurchases";
 
 import { OrdersList } from "./components";
 
+export const dynamic = 'force-dynamic';
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
   const userIsStudent = await isStudent();
