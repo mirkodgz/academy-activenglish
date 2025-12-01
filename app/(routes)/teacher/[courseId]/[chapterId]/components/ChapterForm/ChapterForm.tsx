@@ -1,0 +1,87 @@
+"use client";
+import { ArrowLeft, Cog, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+
+import { ChapterFormProps } from "./ChapterForm.types";
+import { TitleBlock } from "../../../components";
+import axios from "axios";
+import { toast } from "sonner";
+import { ChapterTitleForm } from "./ChapterTitleForm";
+import { ChapterVideoForm } from "./ChapterVideoForm";
+
+export function ChapterForm(props: ChapterFormProps) {
+  const { chapter, courseId } = props;
+
+  const router = useRouter();
+
+  if (!chapter) {
+    return null;
+  }
+
+  const onPublish = async (state: boolean) => {
+    try {
+      axios.patch(`/api/course/${courseId}/chapter/${chapter.id}`, {
+        isPublished: state,
+      });
+
+      toast(state ? "Capitolo pubblicato 🔥" : "Capitolo nascosto ✌🏽");
+
+      router.refresh();
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Ops, qualcosa è andato storto 😭");
+    }
+  };
+
+  const removeChapter = async () => {
+    axios.delete(`/api/course/${courseId}/chapter/${chapter.id}`);
+
+    router.push(`/teacher/${courseId}`);
+
+    toast("Capitolo eliminato 🔥");
+  };
+
+  return (
+    <div>
+      <div className="p-6 bg-white rounded-md">
+        <Button
+          className="mb-4"
+          variant="outline"
+          onClick={() => router.push(`/teacher/${courseId}`)}
+        >
+          <ArrowLeft />
+          Torna alla modifica del corso
+        </Button>
+      </div>
+
+      <div className="p-6 mt-6 bg-white rounded-md flex justify-between items-center">
+        <TitleBlock title="Configurazione del capitolo" icon={Cog} />
+
+        <div className="gap-2 flex items-center">
+          {chapter.isPublished ? (
+            <Button variant="outline" onClick={() => onPublish(false)}>
+              Nascondi
+            </Button>
+          ) : (
+            <Button onClick={() => onPublish(true)}>Pubblica</Button>
+          )}
+
+          <Button variant="destructive" onClick={removeChapter}>
+            <Trash />
+          </Button>
+        </div>
+      </div>
+
+      <ChapterTitleForm courseId={courseId} chapter={chapter} />
+
+      <ChapterVideoForm
+        chapterId={chapter.id}
+        courseId={courseId}
+        videoUrl={chapter.videoUrl}
+      />
+    </div>
+  );
+}
