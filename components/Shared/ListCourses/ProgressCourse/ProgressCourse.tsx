@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPrice } from "@/lib/formatPrice";
+// import { formatPrice } from "@/lib/formatPrice"; // Comentado - no se usa por ahora
 
 import { Progress } from "@/components/ui/progress";
 
@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export function ProgressCourse(props: ProgressCourseProps) {
-  const { courseId, totalChapters, price } = props;
+  const { courseId, totalChapters } = props;
+  // const { price } = props; // Comentado - no se usa por ahora
 
   // Mock: Usuario siempre disponible para desarrollo
   const mockUserId = "mock-user-id-123";
@@ -46,7 +47,9 @@ export function ProgressCourse(props: ProgressCourseProps) {
           <p className="text-xs mt-1">{progressCourse}% Completato</p>
         </div>
       ) : (
-        <h4>{formatPrice(price)}</h4>
+        // Precio comentado - Por ahora no mostramos precios
+        // <h4>{formatPrice(price)}</h4>
+        null
       )}
     </div>
   );

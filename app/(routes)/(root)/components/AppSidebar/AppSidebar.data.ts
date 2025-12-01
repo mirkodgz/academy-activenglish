@@ -4,8 +4,6 @@ import {
   ChartArea,
   GraduationCap,
   House,
-  ReceiptText,
-  SquareTerminal,
   User,
 } from "lucide-react";
 
@@ -16,10 +14,16 @@ export const routes = [
     url: "/",
     icon: House,
   },
+  // Comentado porque "I miei corsi" muestra lo mismo para estudiantes
+  // {
+  //   title: "Corsi",
+  //   url: "/courses",
+  //   icon: SquareTerminal,
+  // },
   {
-    title: "Corsi",
-    url: "/courses",
-    icon: SquareTerminal,
+    title: "Profilo",
+    url: "/profile",
+    icon: User,
   },
 ];
 
@@ -30,20 +34,16 @@ export const routesStudent = [
     url: "/my-courses",
     icon: BookOpen,
   },
-  {
-    title: "Ordini",
-    url: "/orders",
-    icon: ReceiptText,
-  },
+  // Comentado - no se usa por ahora ya que el sistema es libre
+  // {
+  //   title: "Ordini",
+  //   url: "/orders",
+  //   icon: ReceiptText,
+  // },
   {
     title: "Certificati",
     url: "/certificates",
     icon: Award,
-  },
-  {
-    title: "Profilo",
-    url: "/profile",
-    icon: User,
   },
 ];
 
@@ -60,18 +60,8 @@ export const routesTeacher = [
     icon: ChartArea,
   },
   {
-    title: "Ordini",
-    url: "/orders",
-    icon: ReceiptText,
-  },
-  {
     title: "Certificati",
     url: "/certificates",
     icon: Award,
-  },
-  {
-    title: "Profilo",
-    url: "/profile",
-    icon: User,
   },
 ];

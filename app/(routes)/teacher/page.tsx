@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdmin } from "@/lib/auth-mock";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 

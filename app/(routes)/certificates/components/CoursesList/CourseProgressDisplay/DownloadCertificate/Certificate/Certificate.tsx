@@ -23,7 +23,7 @@ export function Certificate(props: CertificateProps) {
         {titleCourse}
       </p>
 
-      <p className="absolute text-sm bottom-32 left-28">
+      <p className="absolute text-sm bottom-32 left-28" suppressHydrationWarning>
         {new Date().toLocaleDateString()}
       </p>
     </div>

@@ -1,21 +1,49 @@
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth-mock";
+import { getCurrentUser, isStudent } from "@/lib/auth";
 import { Chapter, Course } from "@prisma/client";
 
 export const getPurchasedCourses = async (): Promise<
   (Course & { chapters: Chapter[] })[] | null
 > => {
-  const user = await getCurrentUser(); // Mock para desarrollo
+  const user = await getCurrentUser();
 
-  // Validación removida para desarrollo frontend
-  // TODO: Restaurar validación cuando se implemente autenticación real
+  if (!user) {
+    return [];
+  }
 
   try {
+    const userIsStudent = await isStudent();
+
+    // Si es estudiante, mostrar TODOS los cursos publicados
+    if (userIsStudent) {
+      const allPublishedCourses = await prisma.course.findMany({
+        where: {
+          isPublished: true,
+        },
+        include: {
+          chapters: {
+            where: {
+              isPublished: true,
+            },
+            orderBy: {
+              position: "asc",
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return allPublishedCourses;
+    }
+
+    // Para otros roles (ADMIN), mostrar solo los cursos comprados
     const purchasedCourses = await prisma.course.findMany({
       where: {
         purchases: {
           some: {
-            userId: user?.id || "mock-user-id-123",
+            userId: user.id,
           },
         },
         isPublished: true,
@@ -24,6 +52,9 @@ export const getPurchasedCourses = async (): Promise<
         chapters: {
           where: {
             isPublished: true,
+          },
+          orderBy: {
+            position: "asc",
           },
         },
       },

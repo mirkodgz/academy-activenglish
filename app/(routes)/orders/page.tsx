@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ReceiptText } from "lucide-react";
 
-import { getCurrentUser, isStudent, isAdmin } from "@/lib/auth-mock";
+import { getCurrentUser, isStudent, isAdmin } from "@/lib/auth";
 
 import { getUserReceipts } from "@/actions/getReceipStripe";
 import { getUserPurchases } from "@/actions/getUserPurchases";

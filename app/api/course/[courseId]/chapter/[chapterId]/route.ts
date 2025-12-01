@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getAuth, isTeacher } from "@/lib/auth-mock";
-
+import { getUserId, isAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
@@ -8,14 +7,14 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
   try {
-    const { userId } = await getAuth();
-    const userIsTeacher = await isTeacher();
+    const userId = await getUserId();
+    const userIsAdmin = await isAdmin();
     const { courseId, chapterId } = await params;
     const values = await req.json();
 
-    // Solo TEACHER puede editar capítulos
-    if (!userId || !userIsTeacher) {
-      return new NextResponse("Unauthorized - Solo i professori possono modificare i capitoli", {
+    // Solo ADMIN puede editar capítulos
+    if (!userId || !userIsAdmin) {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono modificare i capitoli", {
         status: 403,
       });
     }
@@ -54,13 +53,13 @@ export async function DELETE(
   { params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
   try {
-    const { userId } = await getAuth();
-    const userIsTeacher = await isTeacher();
+    const userId = await getUserId();
+    const userIsAdmin = await isAdmin();
     const { courseId, chapterId } = await params;
 
-    // Solo TEACHER puede eliminar capítulos
-    if (!userId || !userIsTeacher) {
-      return new NextResponse("Unauthorized - Solo i professori possono eliminare i capitoli", {
+    // Solo ADMIN puede eliminar capítulos
+    if (!userId || !userIsAdmin) {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono eliminare i capitoli", {
         status: 403,
       });
     }

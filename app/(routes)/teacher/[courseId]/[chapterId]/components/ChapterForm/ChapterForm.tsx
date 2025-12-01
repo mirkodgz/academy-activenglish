@@ -9,7 +9,7 @@ import { TitleBlock } from "../../../components";
 import axios from "axios";
 import { toast } from "sonner";
 import { ChapterTitleForm } from "./ChapterTitleForm";
-import { ChapterVideoForm } from "./ChapterVideoForm";
+import { ChapterAttachmentForm } from "./ChapterAttachmentForm";
 
 export function ChapterForm(props: ChapterFormProps) {
   const { chapter, courseId } = props;
@@ -77,10 +77,12 @@ export function ChapterForm(props: ChapterFormProps) {
 
       <ChapterTitleForm courseId={courseId} chapter={chapter} />
 
-      <ChapterVideoForm
+      <ChapterAttachmentForm
         chapterId={chapter.id}
         courseId={courseId}
         videoUrl={chapter.videoUrl}
+        documentUrl={chapter.documentUrl}
+        imageUrl={chapter.imageUrl}
       />
     </div>
   );

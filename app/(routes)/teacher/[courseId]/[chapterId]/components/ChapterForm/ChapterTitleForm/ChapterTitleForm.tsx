@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -20,14 +19,10 @@ import { Input } from "@/components/ui/input";
 import { ChapterTitleFormProps } from "./ChapterTitleForm.types";
 import { formSchema } from "./ChapterTitleForm.form";
 import { EditorDescription } from "@/components/Shared";
-import axios from "axios";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export function ChapterTitleForm(props: ChapterTitleFormProps) {
-  const { courseId, chapter } = props;
-
-  const router = useRouter();
+  const { chapter } = props;
+  // const { courseId } = props; // Comentado - no se usa
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,30 +33,15 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      await axios.patch(`/api/course/${courseId}/chapter/${chapter.id}`, {
-        title: values.title,
-        description: values.description,
-        isFree: values.isFree,
-      });
-
-      toast("Capitolo modificato 🔥");
-
-      router.refresh();
-    } catch (error) {
-      console.log(error);
-      toast.error("Qualcosa è andato storto.");
-    }
-  };
+  // Exponer los valores del formulario para que el botón de ChapterAttachmentForm los use
+  if (typeof window !== 'undefined') {
+    (window as { __chapterTitleForm?: typeof form }).__chapterTitleForm = form;
+  }
 
   return (
     <div className="p-6 rounded-md bg-white mt-6">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="title"
@@ -116,11 +96,7 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
           />
 
           <div />
-
-          <Button type="submit" className="mt-4">
-            Salva
-          </Button>
-        </form>
+        </div>
       </Form>
     </div>
   );

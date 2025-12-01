@@ -12,10 +12,11 @@ export function InfoCourse(props: InfoCourseProps) {
     videoUrl,
   } = props;
 
-  const { title, category, description } = infoCourse;
+  const { title, description } = infoCourse;
+  // const { category } = infoCourse; // Comentado - no se usa por ahora
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative space-y-6">
       {!purchaseCourse && (
         <div
           className="absolute inset-0 flex flex-col items-center justify-center
@@ -29,20 +30,31 @@ export function InfoCourse(props: InfoCourseProps) {
         </div>
       )}
 
-      {videoUrl && <VideoCourse videoUrl={videoUrl} />}
-
-      <ProgressCourse
-        userProgress={userProgress}
-        chapterCourseId={chapterCourseId}
-        infoCourse={infoCourse}
-      />
-
-      <div className="mt-4 bg-white rounded-md p-6 shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">{title}</h2>
-        <div className="w-fit mb-4 px-2 py-1 bg-[#0b3d4d] text-white rounded-full text-xs shadow-md">
-          {category}
+      {videoUrl && (
+        <div className="bg-white rounded-md p-4 shadow-md">
+          <VideoCourse videoUrl={videoUrl} />
         </div>
-        <p className="text-gray-600 text-sm">{description}</p>
+      )}
+
+      <div className="bg-white rounded-md p-6 shadow-md">
+        <ProgressCourse
+          userProgress={userProgress}
+          chapterCourseId={chapterCourseId}
+          infoCourse={infoCourse}
+        />
+      </div>
+
+      <div className="bg-white rounded-md p-6 shadow-md space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-3">{title}</h2>
+          {/* Por ahora todos los cursos son webinar */}
+          <div className="w-fit mb-4 px-2 py-1 bg-[#0b3d4d] text-white rounded-full text-xs shadow-md">
+            webinar
+          </div>
+        </div>
+        {description && (
+          <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
+        )}
       </div>
     </div>
   );

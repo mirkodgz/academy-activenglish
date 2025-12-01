@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Urbanist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/Providers/SessionProvider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <body className={`${spaceGrotesk.className} antialiased`}>
+      <body className={`${urbanist.variable} font-sans antialiased`}>
         <SessionProvider>
           <LayoutWrapper>
             {children}

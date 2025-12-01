@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 
@@ -7,7 +7,7 @@ import {
   ChaptersBlock,
   CourseForm,
   CourseImage,
-  CoursePrice,
+  // CoursePrice, // Comentado - no se usa por ahora
   HeaderCourse,
 } from "./components";
 
@@ -20,14 +20,14 @@ export default async function CoursePage({
 }) {
   const { courseId } = await params;
   const user = await getCurrentUser();
-  const userIsTeacher = await isTeacher();
+  const userIsAdmin = await isAdmin();
 
-  // Verificar que el usuario es TEACHER
-  if (!user || !userIsTeacher) {
+  // Verificar que el usuario es ADMIN
+  if (!user || !userIsAdmin) {
     redirect("/");
   }
 
-  // TEACHER puede editar cualquier curso (no solo los suyos)
+  // ADMIN puede editar cualquier curso (no solo los suyos)
   const course = await prisma.course.findUnique({
     where: {
       id: courseId,
@@ -61,7 +61,8 @@ export default async function CoursePage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <CourseImage idCourse={course.id} imageCourse={course.imageUrl} />
 
-        <CoursePrice idCourse={course.id} priceCourse={course.price} />
+        {/* Precio comentado - Por ahora no mostramos precios */}
+        {/* <CoursePrice idCourse={course.id} priceCourse={course.price} /> */}
       </div>
 
       <ChaptersBlock idCourse={course.id} chapters={course.chapters} />

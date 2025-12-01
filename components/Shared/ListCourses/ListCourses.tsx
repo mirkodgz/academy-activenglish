@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ListCoursesProps } from "./ListCourses.types";
 import Image from "next/image";
 import { IconBadge } from "../IconBadge";
-import { Book, ChartNoAxesColumn } from "lucide-react";
+import { Book } from "lucide-react";
+// import { ChartNoAxesColumn } from "lucide-react"; // Comentado - no usamos nivel por ahora
 import { ProgressCourse } from "./ProgressCourse";
 
 export function ListCourses(props: ListCoursesProps) {
@@ -22,22 +23,21 @@ export function ListCourses(props: ListCoursesProps) {
                 id,
                 imageUrl,
                 title,
-                level,
-                price,
                 slug,
-                category,
                 chapters,
               }) => (
+                // const { level, price, category } = course; // Comentado - no se usan por ahora
                 <Link
                   key={id}
                   href={`/courses/${slug}`}
-                  className="border rounded-lg relative transition-shadow hover:shadow-lg shadow-[#0b3d4d]/20 shadow-md"
+                  className="border rounded-lg relative transition-shadow hover:shadow-lg shadow-[#0b3d4d]/20 shadow-md overflow-hidden"
                 >
+                  {/* Por ahora todos los cursos son webinar */}
                   <span
-                    className="absolute top-2 right-2 z-10 px-2 py-1 bg-white text-[#0b3d4d]
-                  font-medium rounded-full text-xs shadow-md"
+                    className="absolute top-2 right-2 z-30 px-2.5 py-1 bg-[#0b3d4d] text-white
+                  font-semibold rounded-full text-xs shadow-lg"
                   >
-                    {category}
+                    webinar
                   </span>
                   <div className="w-full h-[180px] relative">
                     <Image
@@ -59,13 +59,13 @@ export function ListCourses(props: ListCoursesProps) {
                         text={`${chapters.length} Capitoli`}
                       />
 
-                      <IconBadge icon={ChartNoAxesColumn} text={level || ""} />
+                      {/* Nivel comentado - Por ahora no mostramos niveles */}
+                      {/* <IconBadge icon={ChartNoAxesColumn} text={level || ""} /> */}
                     </div>
 
                     <ProgressCourse
                       courseId={id}
                       totalChapters={chapters.length}
-                      price={price}
                     />
                   </div>
                 </Link>

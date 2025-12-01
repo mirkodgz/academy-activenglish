@@ -1,13 +1,14 @@
 import Image from "next/image";
 
 import { CourseCardProps } from "./CourseCard.types";
-import { ChartNoAxesColumn, DollarSign } from "lucide-react";
+// import { ChartNoAxesColumn, DollarSign } from "lucide-react"; // Comentado - no usamos nivel ni precio por ahora
 import { Actions } from "./Actions";
 
 export function CourseCard(props: CourseCardProps) {
   const { course } = props;
-  const { id, title, price, level, imageUrl, description, isPublished } =
+  const { id, title, imageUrl, description, isPublished } =
     course;
+  // const { price, level } = course; // Comentado - no usamos precio ni nivel por ahora
   // const { user } = course; // TODO: Descomentar después de migración
 
   return (
@@ -46,17 +47,19 @@ export function CourseCard(props: CourseCardProps) {
             )}
 
             <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex gap-1 items-center text-sm mt-2">
+              {/* Precio comentado - Por ahora no mostramos precios */}
+              {/* <div className="flex gap-1 items-center text-sm mt-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-400">Prezzo:</span>
                 <span className="font-semibold">{price || 0}</span>
-              </div>
+              </div> */}
 
-              <div className="flex gap-1 items-center text-sm mt-2">
+              {/* Nivel comentado - Por ahora no mostramos niveles */}
+              {/* <div className="flex gap-1 items-center text-sm mt-2">
                 <ChartNoAxesColumn className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-400">Livello:</span>
                 <span className="font-semibold">{level || "Principiante"}</span>
-              </div>
+              </div> */}
 
               {/* TODO: Mostrar creador después de ejecutar migración de Prisma */}
               {/* {user && (

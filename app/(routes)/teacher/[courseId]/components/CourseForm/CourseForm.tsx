@@ -18,13 +18,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select"; // Comentado - no se usa por ahora
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -37,18 +37,23 @@ export function CourseForm(props: CourseFormProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: course.title || "",
-      slug: course.slug || "",
-      description: course.description || "",
-      category: course.category || "",
-      level: course.level || "",
-    },
+      defaultValues: {
+        title: course.title || "",
+        slug: course.slug || "",
+        description: course.description || "",
+        category: course.category || "webinar", // Por ahora solo webinar
+        level: course.level || undefined, // Nivel opcional - Por ahora no usamos niveles
+      },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      axios.patch(`/api/course/${course.id}`, values);
+      // Establecer categoría como "webinar" automáticamente
+      const valuesWithCategory = {
+        ...values,
+        category: "webinar",
+      };
+      axios.patch(`/api/course/${course.id}`, valuesWithCategory);
 
       toast("Corso aggiornato correttamente 🎉");
     } catch {
@@ -96,36 +101,29 @@ export function CourseForm(props: CourseFormProps) {
               )}
             />
 
+            {/* Categoría - Por ahora solo webinar */}
             <FormField
               control={form.control}
               name="category"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona la categoria del corso" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Frontend">Frontend</SelectItem>
-                      <SelectItem value="Backend">Backend</SelectItem>
-                      <SelectItem value="Full Stack">Full Stack</SelectItem>
-                      <SelectItem value="Infraestructura">
-                        Infrastruttura
-                      </SelectItem>
-                      <SelectItem value="Diseño UX/UI">Design UX/UI</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input 
+                      value="webinar" 
+                      disabled 
+                      className="bg-gray-100 cursor-not-allowed"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Por ahora todos los cursos son de tipo webinar
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
+            {/* Nivel comentado - Por ahora no usamos niveles */}
+            {/* <FormField
               control={form.control}
               name="level"
               render={({ field }) => (
@@ -149,7 +147,7 @@ export function CourseForm(props: CourseFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
             <FormField
               control={form.control}
               name="description"

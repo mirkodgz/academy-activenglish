@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isStudent, isTeacher } from "@/lib/auth-mock";
+import { getCurrentUser, isStudent, isAdmin } from "@/lib/auth";
 import { User, Mail, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
   const userIsStudent = await isStudent();
-  const userIsTeacher = await isTeacher();
+  const userIsAdmin = await isAdmin();
 
-  // Permitir acceso a STUDENT y TEACHER
-  if (!user || (!userIsStudent && !userIsTeacher)) {
+  // Permitir acceso a STUDENT y ADMIN
+  if (!user || (!userIsStudent && !userIsAdmin)) {
     redirect("/");
   }
 
@@ -19,13 +19,13 @@ export default async function ProfilePage() {
         <CardHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-full ${
-              userIsTeacher ? "bg-[#60CB58]" : "bg-[#0b3d4d]"
+              userIsAdmin ? "bg-[#60CB58]" : "bg-[#0b3d4d]"
             }`}>
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
               <CardTitle className={`text-2xl ${
-                userIsTeacher ? "text-[#60CB58]" : "text-[#0b3d4d]"
+                userIsAdmin ? "text-[#60CB58]" : "text-[#0b3d4d]"
               }`}>
                 Il mio profilo
               </CardTitle>
@@ -61,11 +61,11 @@ export default async function ProfilePage() {
                 <span className="text-sm font-medium">Ruolo</span>
               </div>
               <span className={`inline-block px-3 py-1 rounded-md font-semibold text-sm ${
-                userIsTeacher 
+                userIsAdmin 
                   ? "bg-[#60CB58]/10 text-[#60CB58]" 
                   : "bg-[#0b3d4d]/10 text-[#0b3d4d]"
               }`}>
-                {userIsTeacher ? "Profesor" : "Studente"}
+                {userIsAdmin ? "Admin" : "Studente"}
               </span>
             </div>
           </div>

@@ -103,7 +103,7 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <p className="text-sm text-gray-500 mt-8">
+        <p className="text-sm text-gray-500 mt-8" suppressHydrationWarning>
           Última actualización: {new Date().toLocaleDateString('es-ES', { 
             year: 'numeric', 
             month: 'long', 

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isTeacher } from "@/lib/auth-mock";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 
@@ -15,10 +15,10 @@ export default async function ChapterPage({
   const { courseId, chapterId } = await params;
 
   const user = await getCurrentUser();
-  const userIsTeacher = await isTeacher();
+  const userIsAdmin = await isAdmin();
 
-  // Verificar que el usuario es TEACHER
-  if (!user || !userIsTeacher) {
+  // Verificar que el usuario es ADMIN
+  if (!user || !userIsAdmin) {
     redirect("/");
   }
 

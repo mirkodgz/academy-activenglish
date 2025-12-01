@@ -4,7 +4,7 @@ import { getCourseBySlug } from "@/actions/getCourseBySlug";
 import { getPurchaseCourseById } from "@/actions/getPurchaseCourseById";
 
 import { BreadCrumbCourse, CourseContent, HeroBlockCourse } from "./components";
-import { getCurrentUser } from "@/lib/auth-mock";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function CoursePage({
   params,
@@ -21,12 +21,9 @@ export default async function CoursePage({
 
   const { title, id } = infoCourse;
 
-  const user = await getCurrentUser(); // Mock para desarrollo
+  const user = await getCurrentUser();
 
-  // Validación removida para desarrollo frontend
-  // TODO: Restaurar validación cuando se implemente autenticación real
-
-  const purchaseCourse = await getPurchaseCourseById(user?.id || "mock-user-id-123", id);
+  const purchaseCourse = user ? await getPurchaseCourseById(user.id, id) : false;
 
   return (
     <div className="max-w-6xl mx-auto">

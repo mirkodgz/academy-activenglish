@@ -8,9 +8,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
@@ -30,18 +27,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent className="bg-white">
         <SidebarHeader>
-          <Link href="/" className="flex flex-row items-center">
+          <Link href="/" className="flex flex-row items-center justify-center overflow-hidden">
             <Image
               src="/logoactiveenglish.png"
               alt="Logo Active English"
-              width={35}
-              height={35}
+              width={100}
+              height={100}
+              className="object-contain scale-125"
             />
-            {state === "expanded" && (
-              <span className="text-xl font-semibold text-gray-800 tracking-wide">
-                Active English
-              </span>
-            )}
           </Link>
         </SidebarHeader>
         <SidebarGroup>
@@ -63,49 +56,39 @@ export function AppSidebar() {
 
           {/* Rutas para Estudiantes */}
           {status === "authenticated" && userRole === "STUDENT" && (
-            <SidebarMenu className="mt-4">
+            <SidebarMenu className="mt-4 space-y-2">
               <SidebarGroupLabel>Studente</SidebarGroupLabel>
-              <SidebarMenuItem>
-                <SidebarMenuSub>
-                  {routesStudent.map((item) => (
-                    <SidebarMenuSubItem key={item.title}>
-                      <SidebarMenuSubButton
-                        href={item.url}
-                        className="hover:bg-muted transition"
-                      >
-                        <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        {item.title}
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </SidebarMenuItem>
+              {routesStudent.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
+                        <item.icon className="w-4 h-4" />
+                      </div>
+                      {state === "expanded" && <span>{item.title}</span>}
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           )}
 
           {/* Rutas para Administradores */}
           {status === "authenticated" && userRole === "ADMIN" && (
-            <SidebarMenu className="mt-4">
+            <SidebarMenu className="mt-4 space-y-2">
               <SidebarGroupLabel>Admin</SidebarGroupLabel>
-              <SidebarMenuItem>
-                <SidebarMenuSub>
-                  {routesTeacher.map((item) => (
-                    <SidebarMenuSubItem key={item.title}>
-                      <SidebarMenuSubButton
-                        href={item.url}
-                        className="hover:bg-muted transition"
-                      >
-                        <div className="p-1 rounded-lg text-white bg-[#60CB58]">
-                          <item.icon className="w-4 h-4" />
-                        </div>
-                        {item.title}
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </SidebarMenuItem>
+              {routesTeacher.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <div className="p-1 rounded-lg text-white bg-[#60CB58]">
+                        <item.icon className="w-4 h-4" />
+                      </div>
+                      {state === "expanded" && <span>{item.title}</span>}
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           )}
         </SidebarGroup>

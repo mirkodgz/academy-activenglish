@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getPurchasedCourses } from "@/actions/getPurchasedCourses";
 import { ListCourses } from "@/components/Shared";
-import { getCurrentUser, isStudent } from "@/lib/auth-mock";
+import { getCurrentUser, isStudent } from "@/lib/auth";
 import { BookOpen } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -26,11 +26,10 @@ export default async function MyCoursesPage() {
           </div>
           <div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Nessun corso acquistato
+              Nessun corso disponibile
             </h3>
             <p className="text-gray-500 max-w-md">
-              Non hai ancora acquistato nessun corso. Esplora i corsi disponibili
-              e inizia il tuo percorso di apprendimento!
+              Non ci sono corsi disponibili al momento. Torna più tardi per vedere i nuovi corsi!
             </p>
           </div>
         </div>
@@ -40,7 +39,7 @@ export default async function MyCoursesPage() {
 
   return (
     <div>
-      <ListCourses title="I miei corsi" courses={courses} />
+      <ListCourses title="Tutti i corsi disponibili" courses={courses} />
     </div>
   );
 }

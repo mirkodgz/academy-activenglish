@@ -1,6 +1,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 
 export type PurchaseWithCourse = {
   id: string;
@@ -23,8 +25,9 @@ export const columns: ColumnDef<PurchaseWithCourse>[] = [
     accessorKey: "createdAtFormatted",
     header: "Data di acquisto",
     cell: ({ row }) => {
-      const date = new Date(row.original.createdAt).toLocaleDateString("it-IT");
-      return <div className="font-medium">{date}</div>;
+      const date = new Date(row.original.createdAt);
+      const formattedDate = format(date, "dd/MM/yyyy", { locale: it });
+      return <div className="font-medium">{formattedDate}</div>;
     },
   },
   {

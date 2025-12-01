@@ -108,6 +108,8 @@ model Chapter {
   title       String
   description String? @db.Text
   videoUrl    String? @db.Text
+  documentUrl String? @db.Text // URL del documento adjunto
+  imageUrl    String? @db.Text // URL de la imagen adjunta
   position    Int
   isPublished Boolean @default(false)
   isFree      Boolean @default(false)

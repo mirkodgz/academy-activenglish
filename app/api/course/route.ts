@@ -1,17 +1,27 @@
 import prisma from "@/lib/prisma";
-import { getAuth, isTeacher } from "@/lib/auth-mock";
-
+import { getUserId, isAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await getAuth();
-    const userIsTeacher = await isTeacher();
+    const userId = await getUserId();
+    const userIsAdmin = await isAdmin();
 
-    // Solo TEACHER puede crear cursos
-    if (!userId || !userIsTeacher) {
-      return new NextResponse("Unauthorized - Solo i professori possono creare corsi", {
+    // Solo ADMIN puede crear cursos
+    if (!userId || !userIsAdmin) {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono creare corsi", {
         status: 403,
+      });
+    }
+
+    // Verificar que el usuario existe en la BD
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return new NextResponse("Usuario no encontrado", {
+        status: 404,
       });
     }
 
@@ -26,6 +36,7 @@ export async function POST(req: Request) {
         userId: userId,
         title: courseName,
         slug,
+        category: "webinar", // Por ahora todos los cursos son webinar
       },
     });
 

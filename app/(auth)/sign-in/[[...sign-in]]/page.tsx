@@ -25,19 +25,30 @@ function SignInForm() {
       const callbackUrl = searchParams.get("callbackUrl") || "/";
       
       // Login simple: dejar que NextAuth maneje todo
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email,
         password,
-        redirect: true,
+        redirect: false, // Cambiar a false para manejar el resultado
         callbackUrl: callbackUrl === "/" ? "/" : callbackUrl,
       });
       
-      // Si llegamos aquí, algo salió mal
-      toast.error("Errore durante l'accesso");
-      setIsLoading(false);
+      // Verificar el resultado
+      if (result?.error) {
+        // Hay un error de autenticación
+        toast.error("Credenziali non valide");
+        setIsLoading(false);
+      } else if (result?.ok) {
+        // Login exitoso, redirigir manualmente
+        toast.success("Accesso effettuato con successo!");
+        window.location.href = callbackUrl;
+      } else {
+        // Caso inesperado
+        toast.error("Errore durante l'accesso");
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Credenziali non valide");
+      toast.error("Errore durante l'accesso");
       setIsLoading(false);
     }
   };

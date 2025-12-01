@@ -5,5 +5,5 @@ export const formSchema = z.object({
   slug: z.string().min(2).max(200),
   description: z.string().min(2).max(500).optional().or(z.literal("")),
   category: z.string().min(2).max(200),
-  level: z.string().min(2).max(200),
+  level: z.string().min(2).max(200).optional(), // Nivel opcional - Por ahora no usamos niveles
 });

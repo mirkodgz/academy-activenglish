@@ -4,8 +4,9 @@ import { useState } from "react";
 
 import { HeroBlockCourseProps } from "./HeroBlockCourse.types";
 import { IconBadge } from "@/components/Shared";
-import { Calendar, ChartNoAxesColumn, Timer } from "lucide-react";
-import { formatPrice } from "@/lib/formatPrice";
+import { Calendar, Timer } from "lucide-react";
+// import { ChartNoAxesColumn } from "lucide-react"; // Comentado - no usamos nivel por ahora
+// import { formatPrice } from "@/lib/formatPrice"; // Comentado - no usamos precio por ahora
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import axios from "axios";
@@ -17,8 +18,8 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
     title,
     id,
     description,
-    price,
-    level,
+    // price, // Comentado - no usamos precio por ahora
+    // level, // Comentado - no usamos nivel por ahora
     imageUrl,
     updatedAt,
     slug,
@@ -31,35 +32,16 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
 
   const enrollCourse = async () => {
     setIsLoading(true);
-    if (price === "Gratuito") {
-      try {
-        await axios.post(`/api/course/${id}/enroll`);
-
-        toast("Iscrizione riuscita 🎉");
-        router.push(`/courses/${slug}/${chapters[0].id}`);
-      } catch (error) {
-        toast.error("Errore nell'iscrizione 😭");
-        console.error(error);
-      } finally {
-        setIsLoading(true);
-      }
-    } else {
-      try {
-        const response = await axios.post(`/api/course/${id}/checkout`);
-
-        // Validar que la URL sea de Stripe antes de redirigir
-        const stripeUrl = response.data.url;
-        if (stripeUrl && typeof stripeUrl === "string" && stripeUrl.startsWith("https://checkout.stripe.com")) {
-          window.location.assign(stripeUrl);
-        } else {
-          toast.error("URL di checkout non valida");
-          console.error("Invalid checkout URL:", stripeUrl);
-        }
-      } catch {
-        toast.error("Errore nell'iscrizione");
-      } finally {
-        setIsLoading(false);
-      }
+    // Por ahora todos los cursos son gratuitos
+    try {
+      await axios.post(`/api/course/${id}/enroll`);
+      toast("Iscrizione riuscita 🎉");
+      router.push(`/courses/${slug}/${chapters[0].id}`);
+    } catch (error) {
+      toast.error("Errore nell'iscrizione 😭");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,12 +50,21 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-      <div>
-        <h2 className="text-3xl font-semibold">{title}</h2>
-        <p className="text-balance mt-2">{description}</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-4">
+          <h2 className="text-3xl font-semibold">{title}</h2>
+          {/* Por ahora todos los cursos son webinar */}
+          <span className="px-3 py-1 bg-[#0b3d4d] text-white rounded-full text-xs font-medium shadow-md">
+            webinar
+          </span>
+        </div>
+        
+        {description && (
+          <p className="text-balance text-gray-700 leading-relaxed">{description}</p>
+        )}
 
-        <div className="flex flex-col gap-3 mt-5 text-gray-600">
+        <div className="flex flex-col gap-4 text-gray-600">
           <IconBadge icon={Timer} text="7h 40min" />
 
           <IconBadge
@@ -83,37 +74,45 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
             ).toLocaleDateString("it-IT")}`}
           />
 
-          <IconBadge icon={ChartNoAxesColumn} text={level || ""} />
+          {/* Nivel comentado - Por ahora no mostramos niveles */}
+          {/* <IconBadge icon={ChartNoAxesColumn} text={level || ""} /> */}
         </div>
 
-        <h2 className="text-xl font-semibold my-4">{formatPrice(price)}</h2>
+        {/* Precio comentado - Por ahora no mostramos precios */}
+        {/* <h2 className="text-xl font-semibold my-4">{formatPrice(price)}</h2> */}
 
-        {purchaseCourse ? (
-          <Button
-            onClick={redirectToCourse}
-            className="hover:bg-[#0b3d4d] text-white font-semibold"
-            disabled={isLoading}
-          >
-            Vedi corso
-          </Button>
-        ) : (
-          <Button
-            onClick={enrollCourse}
-            className="hover:bg-[#0b3d4d] text-white font-semibold"
-            disabled={isLoading}
-          >
-            Iscriviti ora
-          </Button>
-        )}
+        <div className="pt-2">
+          {purchaseCourse ? (
+            <Button
+              onClick={redirectToCourse}
+              className="hover:bg-[#0b3d4d] text-white font-semibold"
+              disabled={isLoading}
+              size="lg"
+            >
+              Inizia corso
+            </Button>
+          ) : (
+            <Button
+              onClick={enrollCourse}
+              className="hover:bg-[#0b3d4d] text-white font-semibold"
+              disabled={isLoading}
+              size="lg"
+            >
+              Iscriviti ora
+            </Button>
+          )}
+        </div>
       </div>
 
-      <Image
-        src={imageUrl || "/default-image-course.webp"}
-        alt={title}
-        width={500}
-        height={400}
-        className="rounded-md"
-      />
+      <div className="flex items-center justify-center">
+        <Image
+          src={imageUrl || "/default-image-course.webp"}
+          alt={title}
+          width={500}
+          height={400}
+          className="rounded-md"
+        />
+      </div>
     </div>
   );
 }

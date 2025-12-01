@@ -1,29 +1,31 @@
 import prisma from "@/lib/prisma";
-import { getAuth, getCurrentUser } from "@/lib/auth-mock";
-
+import { getUserId, getCurrentUser } from "@/lib/auth";
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-
 import { stripe } from "@/lib/stripe";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
-  const { userId } = await getAuth(); // Mock para desarrollo
-  const { courseId } = await params;
-
-  // Validación removida para desarrollo frontend
-  // TODO: Restaurar validación cuando se implemente autenticación real
-
-  const user = await getCurrentUser();
-
-  // Si Stripe no está configurado, retornar error
-  if (!stripe) {
-    return new NextResponse("Stripe not configured", { status: 500 });
-  }
-
   try {
+    const userId = await getUserId();
+    const { courseId } = await params;
+
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    // Si Stripe no está configurado, retornar error
+    if (!stripe) {
+      return new NextResponse("Stripe not configured", { status: 500 });
+    }
     const course = await prisma.course.findUnique({
       where: {
         id: courseId,
@@ -45,7 +47,7 @@ export async function POST(
     const purchase = await prisma.purchase.findUnique({
       where: {
         userId_courseId: {
-          userId: userId || "mock-user-id-123",
+          userId: userId,
           courseId,
         },
       },
@@ -74,7 +76,7 @@ export async function POST(
 
     let stripeCustomer = await prisma.stripeCustomer.findUnique({
       where: {
-        userId: userId || "mock-user-id-123",
+        userId: userId,
       },
       select: {
         stripeCustomerId: true,
@@ -83,12 +85,12 @@ export async function POST(
 
     if (!stripeCustomer) {
       const customer = await stripe.customers.create({
-        email: user?.emailAddresses[0].emailAddress,
+        email: user.emailAddresses[0]?.emailAddress || user.emailAddresses[0]?.emailAddress || "",
       });
 
       stripeCustomer = await prisma.stripeCustomer.create({
         data: {
-          userId: userId || "mock-user-id-123",
+          userId: userId,
           stripeCustomerId: customer.id,
         },
       });
@@ -102,7 +104,7 @@ export async function POST(
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${course.slug}?cancelled=1`,
       metadata: {
         courseId: course.id,
-        userId: userId || "mock-user-id-123",
+        userId: userId,
         price: course.price ? course.price.toString() : "0",
       },
     });

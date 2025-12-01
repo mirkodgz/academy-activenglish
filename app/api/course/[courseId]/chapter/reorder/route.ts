@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getAuth, isAdmin } from "@/lib/auth-mock";
-
+import { getUserId, isAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function PUT(
@@ -8,7 +7,7 @@ export async function PUT(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await getAuth();
+    const userId = await getUserId();
     const userIsAdmin = await isAdmin();
     const { courseId } = await params;
 

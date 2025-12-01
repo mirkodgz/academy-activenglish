@@ -4,14 +4,14 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
+  // TableFooter, // Comentado - no se usa por ahora
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
 import { OrderListProps } from "./OrdersList.types";
-import { formatPrice } from "@/lib/formatPrice";
+// import { formatPrice } from "@/lib/formatPrice"; // Comentado - no se usa por ahora
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -19,14 +19,14 @@ import { ExternalLink } from "lucide-react";
 export function OrdersList(props: OrderListProps) {
   const { purchases, receipts } = props;
 
-  const totalPurchases = purchases.reduce((acc, purchase) => {
-    const rawPrice = purchase.course.price?.replace(",", ".");
-    const price =
-      rawPrice && !isNaN(Number(rawPrice)) ? parseFloat(rawPrice) : 0;
-    return acc + price;
-  }, 0);
+  // const totalPurchases = purchases.reduce((acc, purchase) => {
+  //   const rawPrice = purchase.course.price?.replace(",", ".");
+  //   const price =
+  //     rawPrice && !isNaN(Number(rawPrice)) ? parseFloat(rawPrice) : 0;
+  //   return acc + price;
+  // }, 0); // Comentado - no se usa por ahora
 
-  const formattedTotal = formatPrice(totalPurchases.toString() || "0");
+  // const formattedTotal = formatPrice(totalPurchases.toString() || "0"); // Comentado - no se usa por ahora
 
   const downloadReceipt = (index: number) => {
     const receiptUrl = receipts[index].receiptUrl;
@@ -47,7 +47,8 @@ export function OrdersList(props: OrderListProps) {
           <TableHead>Corso</TableHead>
           <TableHead>Stato</TableHead>
           <TableHead className="text-center">Ricevuta</TableHead>
-          <TableHead className="text-right">Prezzo</TableHead>
+          {/* Precio comentado - Por ahora no mostramos precios */}
+          {/* <TableHead className="text-right">Prezzo</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -73,18 +74,20 @@ export function OrdersList(props: OrderListProps) {
                 <ExternalLink className="w-4 h-4" />
               </Button>
             </TableCell>
-            <TableCell className="text-right">
+            {/* Precio comentado - Por ahora no mostramos precios */}
+            {/* <TableCell className="text-right">
               {formatPrice(purchase.course.price)}
-            </TableCell>
+            </TableCell> */}
           </TableRow>
         ))}
       </TableBody>
-      <TableFooter>
+      {/* Footer con total comentado - Por ahora no mostramos precios */}
+      {/* <TableFooter>
         <TableRow>
           <TableCell colSpan={4}>Totale speso</TableCell>
           <TableCell className="text-right">{formattedTotal}</TableCell>
         </TableRow>
-      </TableFooter>
+      </TableFooter> */}
     </Table>
   );
 }

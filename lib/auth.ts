@@ -75,7 +75,27 @@ export async function getUserId(): Promise<string | null> {
  */
 export async function getUserRole(): Promise<UserRole | null> {
   const session = await auth();
-  return (session?.user as { role?: UserRole })?.role || null;
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  // Obtener el rol desde la base de datos para asegurar que esté actualizado
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    return user?.role || null;
+  } catch (error) {
+    console.error("[GET_USER_ROLE]", error);
+    // Fallback: usar el rol de la sesión
+    return (session?.user as { role?: UserRole })?.role || null;
+  }
 }
 
 /**
@@ -98,7 +118,14 @@ export async function isTeacher(): Promise<boolean> {
  */
 export async function isStudent(): Promise<boolean> {
   const role = await getUserRole();
-  return role === "STUDENT";
+  const isStudentResult = role === "STUDENT";
+  
+  // Log de depuración (solo en desarrollo)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[IS_STUDENT] Role:", role, "Is Student:", isStudentResult);
+  }
+  
+  return isStudentResult;
 }
 
 /**

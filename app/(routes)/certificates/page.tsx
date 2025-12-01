@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getPurchasedCourses } from "@/actions/getPurchasedCourses";
 import { getUserProgressByCourse } from "@/actions/getUserProgressByCourse";
-import { getCurrentUser, isStudent, isTeacher } from "@/lib/auth-mock";
+import { getCurrentUser, isStudent, isAdmin } from "@/lib/auth";
 import { Award } from "lucide-react";
 import { CoursesList } from "./components/CoursesList";
 import prisma from "@/lib/prisma";
@@ -12,18 +12,18 @@ export const dynamic = 'force-dynamic';
 export default async function CertificatesPage() {
   const user = await getCurrentUser();
   const userIsStudent = await isStudent();
-  const userIsTeacher = await isTeacher();
+  const userIsAdmin = await isAdmin();
 
-  // Permitir acceso a STUDENT y TEACHER
-  if (!user || (!userIsStudent && !userIsTeacher)) {
+  // Permitir acceso a STUDENT y ADMIN
+  if (!user || (!userIsStudent && !userIsAdmin)) {
     redirect("/");
   }
 
   const userName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || 
-    (userIsTeacher ? "Profesor" : "Estudiante");
+    (userIsAdmin ? "Admin" : "Estudiante");
 
-  // Si es TEACHER, mostrar certificados de estudiantes
-  if (userIsTeacher) {
+  // Si es ADMIN, mostrar certificados de estudiantes
+  if (userIsAdmin) {
     // Obtener todos los cursos del profesor
     const teacherCourses = await prisma.course.findMany({
       where: {
@@ -113,7 +113,7 @@ export default async function CertificatesPage() {
 
   const coursesWithProgress = await Promise.all(
     courses.map(async (course) => {
-      const progress = await getUserProgressByCourse(user?.id || "mock-user-id-123", course.id);
+      const progress = await getUserProgressByCourse(user.id, course.id);
       return { ...course, progress };
     })
   );

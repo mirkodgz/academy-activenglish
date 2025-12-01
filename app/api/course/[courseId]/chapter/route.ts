@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getAuth, isTeacher } from "@/lib/auth-mock";
-
+import { getUserId, isAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -8,13 +7,13 @@ export async function POST(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { userId } = await getAuth();
-    const userIsTeacher = await isTeacher();
+    const userId = await getUserId();
+    const userIsAdmin = await isAdmin();
     const { courseId } = await params;
 
-    // Solo TEACHER puede crear capítulos
-    if (!userId || !userIsTeacher) {
-      return new NextResponse("Unauthorized - Solo i professori possono creare capitoli", {
+    // Solo ADMIN puede crear capítulos
+    if (!userId || !userIsAdmin) {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono creare capitoli", {
         status: 403,
       });
     }

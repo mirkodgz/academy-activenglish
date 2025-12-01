@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getCurrentUser } from "@/lib/auth-mock";
+import { getCurrentUser } from "@/lib/auth";
 
 import { getCourseBySlug } from "@/actions/getCourseBySlug";
 import { getIsPurchasedCourse } from "@/actions/getPurchasedCourse";
@@ -15,10 +15,7 @@ export default async function ChapterCoursePage({
 }) {
   const { courseSlug, chapterCourse } = await params;
 
-  const user = await getCurrentUser(); // Mock para desarrollo
-
-  // Validación removida para desarrollo frontend
-  // TODO: Restaurar validación cuando se implemente autenticación real
+  const user = await getCurrentUser();
 
   const infoCourse = await getCourseBySlug(courseSlug);
   const userProgress = await getUserProgress();
@@ -27,15 +24,15 @@ export default async function ChapterCoursePage({
     return redirect(`/courses/${courseSlug}`);
   }
 
-  const isPurchasedCourse = await getIsPurchasedCourse(user?.id || "mock-user-id-123", infoCourse.id);
+  const isPurchasedCourse = user ? await getIsPurchasedCourse(user.id, infoCourse.id) : false;
 
   const videoUrl = infoCourse.chapters.find(
     (chapter) => chapter.id === chapterCourse
   )?.videoUrl;
 
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-[65%_1fr] gap-4">
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-[65%_1fr] gap-6">
         <InfoCourse
           infoCourse={infoCourse}
           chapterCourseId={chapterCourse}
