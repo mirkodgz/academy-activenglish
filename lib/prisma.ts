@@ -12,7 +12,12 @@ if (!process.env.activenglish_PRISMA_DATABASE_URL) {
   else if (process.env.activenglish_POSTGRES_URL) {
     process.env.activenglish_PRISMA_DATABASE_URL = process.env.activenglish_POSTGRES_URL;
   }
+  else if (process.env.activenglish_DATABASE_URL) {
+    // activenglish_DATABASE_URL (con 't') - nombre correcto
+    process.env.activenglish_PRISMA_DATABASE_URL = process.env.activenglish_DATABASE_URL;
+  }
   else if (process.env.activeenglish_DATABASE_URL) {
+    // Fallback: activeenglish_DATABASE_URL (sin 't') - para compatibilidad
     process.env.activenglish_PRISMA_DATABASE_URL = process.env.activeenglish_DATABASE_URL;
   }
 }

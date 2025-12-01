@@ -100,18 +100,39 @@ function SignInForm() {
           console.warn("⚠️ Error al obtener sesión:", error);
         }
         
-        // Esperar un momento para que el token JWT se establezca en las cookies
-        // Luego usar window.location.href para forzar una recarga completa
-        // Esto asegura que el middleware vea el token en las cookies
-        setTimeout(() => {
-          console.log("🔄 Ejecutando redirección a:", callbackUrl);
-          // Usar window.location.href para forzar recarga completa
-          // Esto es más confiable que router.push() porque:
-          // 1. Fuerza una recarga completa de la página
-          // 2. El middleware puede ver el token JWT en las cookies
-          // 3. No depende del estado del router de Next.js
-          window.location.href = callbackUrl;
-        }, 500);
+        // IMPORTANTE: En producción, las cookies pueden tardar más en establecerse
+        // Aumentamos el delay a 1000ms para dar tiempo suficiente
+        // También verificamos que la sesión esté disponible antes de redirigir
+        setTimeout(async () => {
+          try {
+            // Verificar que la sesión esté disponible
+            const session = await getSession();
+            if (!session) {
+              console.warn("⚠️ Sesión no disponible aún, esperando más tiempo...");
+              // Esperar otros 500ms si la sesión no está disponible
+              setTimeout(() => {
+                console.log("🔄 Ejecutando redirección a:", callbackUrl);
+                window.location.href = callbackUrl;
+              }, 500);
+              return;
+            }
+            
+            console.log("✅ Sesión verificada, redirigiendo a:", callbackUrl);
+            // Usar window.location.href para forzar recarga completa
+            // Esto es más confiable que router.push() porque:
+            // 1. Fuerza una recarga completa de la página
+            // 2. El middleware puede ver el token JWT en las cookies
+            // 3. No depende del estado del router de Next.js
+            window.location.href = callbackUrl;
+          } catch (error) {
+            console.error("❌ Error al verificar sesión:", error);
+            // Fallback: redirigir de todas formas después de un delay adicional
+            setTimeout(() => {
+              console.log("🔄 Ejecutando redirección (fallback) a:", callbackUrl);
+              window.location.href = callbackUrl;
+            }, 500);
+          }
+        }, 1000);
       }
     } catch (error) {
       console.error("Error durante l'accesso:", error);
