@@ -1,5 +1,4 @@
 import {
-  Award,
   BookOpen,
   ChartArea,
   GraduationCap,
@@ -41,11 +40,12 @@ export const routesStudent = [
   //   url: "/orders",
   //   icon: ReceiptText,
   // },
-  {
-    title: "Certificati",
-    url: "/certificates",
-    icon: Award,
-  },
+  // Comentado - Certificati oculto por ahora
+  // {
+  //   title: "Certificati",
+  //   url: "/certificates",
+  //   icon: Award,
+  // },
 ];
 
 // Rutas para administradores
@@ -65,9 +65,10 @@ export const routesTeacher = [
     url: "/teacher/users",
     icon: Users,
   },
-  {
-    title: "Certificati",
-    url: "/certificates",
-    icon: Award,
-  },
+  // Comentado - Certificati oculto por ahora
+  // {
+  //   title: "Certificati",
+  //   url: "/certificates",
+  //   icon: Award,
+  // },
 ];

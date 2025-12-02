@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   title: "Active English - Piattaforma di apprendimento",
   description: "Piattaforma di apprendimento online per corsi di inglese",
   icons: {
-    icon: "/logoactiveenglish.png",
-    shortcut: "/logoactiveenglish.png",
-    apple: "/logoactiveenglish.png",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 

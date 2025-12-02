@@ -167,11 +167,6 @@ function SignInForm() {
             Registrati qui
           </a>
         </p> */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
-          <div className="h-px w-12 bg-gray-300"></div>
-          <span>Active English</span>
-          <div className="h-px w-12 bg-gray-300"></div>
-        </div>
       </div>
     </div>
   );

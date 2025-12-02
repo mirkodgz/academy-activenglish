@@ -87,7 +87,7 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
           {purchaseCourse ? (
             <Button
               onClick={redirectToCourse}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold cursor-pointer"
               disabled={isLoading}
               size="lg"
             >
@@ -96,7 +96,7 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
           ) : (
             <Button
               onClick={enrollCourse}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold cursor-pointer"
               disabled={isLoading}
               size="lg"
             >
