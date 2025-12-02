@@ -63,16 +63,16 @@ function SignInForm() {
   return (
     <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-md mx-auto">
       {/* Logo y título */}
-      <div className="flex flex-col items-center gap-4 mb-2">
-        <div className="relative w-20 h-20">
-          <Image
-            src="/logoactiveenglish.png"
-            alt="Active English Logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+      <div className="flex flex-col items-center gap-0 pb-[15px]">
+        <Image
+          src="/logoactiveenglish.png"
+          alt="Active English Logo"
+          width={240}
+          height={240}
+          className="object-contain drop-shadow-lg"
+          style={{ filter: 'drop-shadow(0 12px 20px rgba(11, 61, 77, 0.5)) drop-shadow(0 8px 14px rgba(11, 61, 77, 0.4)) drop-shadow(0 4px 8px rgba(11, 61, 77, 0.3))' }}
+          priority
+        />
         <div className="text-center">
           <h1 className="font-bold text-4xl text-[#0b3d4d] mb-2">
             Benvenuto
@@ -84,7 +84,7 @@ function SignInForm() {
       </div>
 
       {/* Formulario de login */}
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md -mt-4">
         <div className="bg-white rounded-xl shadow-lg border border-[#0b3d4d]/10 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -184,16 +184,16 @@ export default function SignInPage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-md mx-auto">
-        <div className="flex flex-col items-center gap-4 mb-2">
-          <div className="relative w-20 h-20">
-            <Image
-              src="/logoactiveenglish.png"
-              alt="Active English Logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+        <div className="flex flex-col items-center gap-0 pb-[15px]">
+          <Image
+            src="/logoactiveenglish.png"
+            alt="Active English Logo"
+            width={240}
+            height={240}
+            className="object-contain drop-shadow-lg"
+            style={{ filter: 'drop-shadow(0 12px 20px rgba(11, 61, 77, 0.5)) drop-shadow(0 8px 14px rgba(11, 61, 77, 0.4)) drop-shadow(0 4px 8px rgba(11, 61, 77, 0.3))' }}
+            priority
+          />
           <div className="text-center">
             <h1 className="font-bold text-4xl text-[#0b3d4d] mb-2">
               Benvenuto
@@ -203,7 +203,7 @@ export default function SignInPage() {
             </p>
           </div>
         </div>
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md -mt-4">
           <div className="bg-white rounded-xl shadow-lg border border-[#0b3d4d]/10 p-8">
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-8 h-8 animate-spin text-[#0b3d4d]" />

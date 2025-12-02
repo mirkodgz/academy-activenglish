@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
     "build": "node scripts/setup-env.js && node scripts/verify-env.js && node scripts/run-prisma-with-env.js migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
