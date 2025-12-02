@@ -115,9 +115,6 @@ export function CourseForm(props: CourseFormProps) {
                       className="bg-muted cursor-not-allowed"
                     />
                   </FormControl>
-                  <FormDescription>
-                    Por ahora todos los cursos son de tipo webinar
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

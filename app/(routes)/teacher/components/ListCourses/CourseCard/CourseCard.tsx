@@ -28,8 +28,8 @@ export function CourseCard(props: CourseCardProps) {
 
               {isPublished ? (
                 <span
-                  className="inline-block bg-secondary/20
-                 text-secondary-foreground text-xs font-medium px-2 py-1 rounded-md mt-1"
+                  className="inline-block bg-secondary/20 dark:bg-secondary/30
+                 text-[#0b3d4d] dark:text-secondary-foreground text-xs font-medium px-2 py-1 rounded-md mt-1"
                 >
                   Pubblicato
                 </span>

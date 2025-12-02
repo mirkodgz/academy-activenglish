@@ -44,6 +44,11 @@ function getVimeoEmbedUrl(url: string): string | null {
   return null;
 }
 
+// Función para verificar si es una URL de Cloudinary Player
+function isCloudinaryPlayerUrl(url: string): boolean {
+  return /player\.cloudinary\.com/.test(url);
+}
+
 export function VideoCourse(props: VideoCourseProps) {
   const { videoUrl } = props;
 
@@ -89,6 +94,23 @@ export function VideoCourse(props: VideoCourseProps) {
         </div>
       );
     }
+  }
+
+  // Si es Cloudinary Player, usar iframe
+  if (isCloudinaryPlayerUrl(videoUrl)) {
+    return (
+      <div className="w-full rounded-md shadow-md overflow-hidden bg-black">
+        <div className="relative pb-[56.25%] h-0">
+          <iframe
+            src={videoUrl}
+            className="absolute top-0 left-0 w-full h-full"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Video del curso"
+          />
+        </div>
+      </div>
+    );
   }
 
   // Si es una URL directa de video, usar tag video
