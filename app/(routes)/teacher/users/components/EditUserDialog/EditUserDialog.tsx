@@ -126,10 +126,10 @@ export function EditUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4 border-b">
-          <DialogTitle className="text-2xl font-semibold text-[#0b3d4d]">
+          <DialogTitle className="text-2xl font-semibold text-primary">
             Modifica utente
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-600 mt-2">
+          <DialogDescription className="text-sm text-muted-foreground mt-2">
             Modifica i dati dell&apos;utente. Lascia la password vuota per non modificarla.
           </DialogDescription>
         </DialogHeader>
@@ -138,7 +138,7 @@ export function EditUserDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
             {/* Sezione: Informazioni di base */}
             <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
                 Informazioni di base
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -210,7 +210,7 @@ export function EditUserDialog({
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription className="text-xs text-gray-500 mt-1">
+                      <FormDescription className="text-xs text-muted-foreground mt-1">
                         Gli amministratori possono gestire corsi e utenti
                       </FormDescription>
                       <FormMessage className="mt-1" />
@@ -222,7 +222,7 @@ export function EditUserDialog({
 
             {/* Sezione: Credenziali */}
             <div className="space-y-4 pt-4 border-t">
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
                 Credenziali
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -261,7 +261,7 @@ export function EditUserDialog({
                           className="h-10"
                         />
                       </FormControl>
-                      <FormDescription className="text-xs text-gray-500 mt-1">
+                      <FormDescription className="text-xs text-muted-foreground mt-1">
                         Lascia vuoto per mantenere la password attuale
                       </FormDescription>
                       <FormMessage className="mt-1" />
@@ -284,7 +284,7 @@ export function EditUserDialog({
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="min-w-[140px] bg-[#0b3d4d] hover:bg-[#0b3d4d]/90"
+                className="min-w-[140px] bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">

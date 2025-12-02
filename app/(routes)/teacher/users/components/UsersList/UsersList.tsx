@@ -85,9 +85,9 @@ export function UsersList() {
 
   if (isLoading) {
     return (
-      <div className="p-6 rounded-md bg-white">
+      <div className="p-6 rounded-md bg-card">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0b3d4d]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </div>
     );
@@ -95,19 +95,19 @@ export function UsersList() {
 
   return (
     <>
-      <div className="p-6 rounded-md bg-white">
+      <div className="p-6 rounded-md bg-card">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-[#0b3d4d]" />
-            <h3 className="text-xl font-semibold">Lista Utenti</h3>
+            <UserIcon className="w-5 h-5 text-primary" />
+            <h3 className="text-xl font-semibold text-foreground">Lista Utenti</h3>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {users.length} {users.length === 1 ? "utente" : "utenti"}
           </p>
         </div>
 
         {users.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-muted-foreground">
             <p>Nessun utente trovato</p>
           </div>
         ) : (
@@ -133,8 +133,8 @@ export function UsersList() {
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           user.role === "ADMIN"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
+                            ? "bg-secondary/20 text-secondary dark:bg-secondary/30 dark:text-secondary-foreground"
+                            : "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground"
                         }`}
                       >
                         {user.role === "ADMIN" ? "Amministratore" : "Studente"}
@@ -196,7 +196,7 @@ export function UsersList() {
             <AlertDialogCancel>Annulla</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Elimina
             </AlertDialogAction>

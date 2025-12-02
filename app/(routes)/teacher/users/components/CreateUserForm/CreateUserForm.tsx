@@ -78,9 +78,9 @@ export function CreateUserForm() {
   };
 
   return (
-    <div className="p-6 rounded-md bg-white">
+    <div className="p-6 rounded-md bg-card">
       <TitleBlock title="Crea nuovo utente" icon={UserPlus} />
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-sm text-muted-foreground mb-6">
         Crea un nuovo utente con ruolo Admin o Studente
       </p>
 
