@@ -26,7 +26,7 @@ export function ChapterForm(props: ChapterFormProps) {
         isPublished: state,
       });
 
-      toast(state ? "Capitolo pubblicato 🔥" : "Capitolo nascosto ✌🏽");
+      toast(state ? "Modulo pubblicato 🔥" : "Modulo nascosto ✌🏽");
 
       router.refresh();
     } catch (error) {
@@ -41,7 +41,7 @@ export function ChapterForm(props: ChapterFormProps) {
 
     router.push(`/teacher/${courseId}`);
 
-    toast("Capitolo eliminato 🔥");
+    toast("Modulo eliminato 🔥");
   };
 
   return (
@@ -58,7 +58,7 @@ export function ChapterForm(props: ChapterFormProps) {
       </div>
 
       <div className="p-6 mt-6 bg-card rounded-md flex justify-between items-center">
-        <TitleBlock title="Configurazione del capitolo" icon={Cog} />
+        <TitleBlock title="Configurazione del modulo" icon={Cog} />
 
         <div className="gap-2 flex items-center">
           {chapter.isPublished ? (

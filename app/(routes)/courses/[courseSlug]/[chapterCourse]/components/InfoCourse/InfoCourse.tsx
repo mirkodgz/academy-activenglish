@@ -25,7 +25,7 @@ export function InfoCourse(props: InfoCourseProps) {
         >
           <Lock className="w-8 h-8" />
           <p className="text-sm">
-            Capitolo bloccato. Paga il corso per sbloccarlo
+            Modulo bloccato. Paga il corso per sbloccarlo
           </p>
         </div>
       )}

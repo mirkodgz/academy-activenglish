@@ -47,7 +47,7 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome del capitolo</FormLabel>
+                <FormLabel>Nome del modulo</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Introduzione alla programmazione"
@@ -64,7 +64,7 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descrizione del capitolo</FormLabel>
+                <FormLabel>Descrizione del modulo</FormLabel>
                 <FormControl>
                   <EditorDescription {...field} value={field.value || ""} />
                 </FormControl>
@@ -85,9 +85,9 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>Capitolo pubblico</FormLabel>
+                  <FormLabel>Modulo pubblico</FormLabel>
                   <FormDescription>
-                    Se vuoi che questo capitolo sia visibile per tutti gli
+                    Se vuoi che questo modulo sia visibile per tutti gli
                     utenti.
                   </FormDescription>
                 </div>

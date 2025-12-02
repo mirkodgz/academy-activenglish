@@ -13,7 +13,7 @@ export async function POST(
 
     // Solo ADMIN puede crear capítulos
     if (!userId || !userIsAdmin) {
-      return new NextResponse("Unauthorized - Solo gli amministratori possono creare capitoli", {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono creare moduli", {
         status: 403,
       });
     }
@@ -21,7 +21,7 @@ export async function POST(
     const { title } = await req.json();
 
     if (!title) {
-      return new NextResponse("Il titolo del capitolo è obbligatorio", { status: 400 });
+      return new NextResponse("Il titolo del modulo è obbligatorio", { status: 400 });
     }
 
     // Verificar que el curso existe (TEACHER puede crear capítulos en cualquier curso)

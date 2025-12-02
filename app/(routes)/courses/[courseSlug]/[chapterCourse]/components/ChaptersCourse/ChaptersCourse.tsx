@@ -9,7 +9,7 @@ export function ChaptersCourse(props: ChaptersCourseProps) {
       className="bg-card p-4 rounded-lg shadow-md 
     border border-border h-fit"
     >
-      <h2 className="text-2xl font-semibold text-card-foreground mb-4">Capitoli </h2>
+      <h2 className="text-2xl font-semibold text-card-foreground mb-4">Moduli </h2>
 
       <ChaptersList
         chapters={chapters}

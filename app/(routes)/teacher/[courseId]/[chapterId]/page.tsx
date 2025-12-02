@@ -30,7 +30,7 @@ export default async function ChapterPage({
   });
 
   if (!chapter) {
-    return <p>Questo capitolo non esiste</p>;
+    return <p>Questo modulo non esiste</p>;
   }
 
   return (

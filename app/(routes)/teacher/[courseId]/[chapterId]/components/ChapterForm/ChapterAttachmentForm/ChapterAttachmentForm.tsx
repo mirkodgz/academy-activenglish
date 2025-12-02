@@ -213,7 +213,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
       // Guardar todo (título y contenido)
       await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, updateData);
-      toast("Capitolo salvato 🔥");
+      toast("Modulo salvato 🔥");
       router.refresh();
       setIsEditing(false);
     } catch {
@@ -223,7 +223,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
   return (
     <div className="mt-6 p-6 bg-card rounded-md">
-      <TitleBlock title="Contenuto del capitolo" icon={FileText} />
+      <TitleBlock title="Contenuto del modulo" icon={FileText} />
       <p className="text-sm text-muted-foreground mb-4">
         Scegli un tipo di contenuto: video (URL o file), documento o immagine
       </p>
@@ -491,7 +491,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 <div className="rounded-md border p-4">
                   <Image
                     src={imageUrl}
-                    alt="Immagine del capitolo"
+                    alt="Immagine del modulo"
                     width={500}
                     height={300}
                     className="rounded-md object-cover"

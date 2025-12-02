@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { HeroBlockCourseProps } from "./HeroBlockCourse.types";
 import { IconBadge } from "@/components/Shared";
-import { Calendar, Timer } from "lucide-react";
+import { Calendar } from "lucide-react";
+// import { Timer } from "lucide-react"; // Comentado - no usamos tiempo por ahora
 // import { ChartNoAxesColumn } from "lucide-react"; // Comentado - no usamos nivel por ahora
 // import { formatPrice } from "@/lib/formatPrice"; // Comentado - no usamos precio por ahora
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,8 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
         )}
 
         <div className="flex flex-col gap-4 text-muted-foreground">
-          <IconBadge icon={Timer} text="7h 40min" />
+          {/* Tiempo comentado - Por ahora no mostramos duración */}
+          {/* <IconBadge icon={Timer} text="7h 40min" /> */}
 
           <IconBadge
             icon={Calendar}

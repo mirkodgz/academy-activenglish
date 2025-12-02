@@ -14,7 +14,7 @@ export async function PATCH(
 
     // Solo ADMIN puede editar capítulos
     if (!userId || !userIsAdmin) {
-      return new NextResponse("Unauthorized - Solo gli amministratori possono modificare i capitoli", {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono modificare i moduli", {
         status: 403,
       });
     }
@@ -59,7 +59,7 @@ export async function DELETE(
 
     // Solo ADMIN puede eliminar capítulos
     if (!userId || !userIsAdmin) {
-      return new NextResponse("Unauthorized - Solo gli amministratori possono eliminare i capitoli", {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono eliminare i moduli", {
         status: 403,
       });
     }

@@ -38,7 +38,7 @@ export function AppSidebar() {
           </Link>
         </SidebarHeader>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground">Plataforma</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground">Piattaforma</SidebarGroupLabel>
           <SidebarMenu className="space-y-2">
             {routes.map((item) => (
               <SidebarMenuItem key={item.title}>

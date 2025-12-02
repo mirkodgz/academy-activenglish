@@ -13,7 +13,7 @@ export async function PUT(
 
     // Solo ADMIN puede reordenar capítulos
     if (!userId || !userIsAdmin) {
-      return new NextResponse("Unauthorized - Solo gli amministratori possono riordinare i capitoli", {
+      return new NextResponse("Unauthorized - Solo gli amministratori possono riordinare i moduli", {
         status: 403,
       });
     }
@@ -21,7 +21,7 @@ export async function PUT(
     const { list } = await req.json();
 
     if (!list || !Array.isArray(list)) {
-      return new NextResponse("Lista di capitoli non valida", { status: 400 });
+      return new NextResponse("Lista di moduli non valida", { status: 400 });
     }
 
     // Verificar que el curso existe

@@ -76,10 +76,10 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
 
   return (
     <div className="p-6 bg-card rounded-md h-fit relative">
-      <TitleBlock title="Capitoli del corso" icon={ListCheck} />
+      <TitleBlock title="Moduli del corso" icon={ListCheck} />
 
       <div className="flex gap-2 items-center justify-between mb-3">
-        <p>Capitoli completati</p>
+        <p>Moduli completati</p>
 
         <Button
           variant="outline"
@@ -87,7 +87,7 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
           onClick={() => setShowInputChapter(true)}
         >
           <PlusCircle className="w-4 h-4" />
-          Crea capitolo
+          Crea modulo
         </Button>
       </div>
 

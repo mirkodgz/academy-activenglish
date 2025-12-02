@@ -38,11 +38,11 @@ export function FormChapterName(props: FormChapterNameProps) {
         title: values.title,
       });
 
-      toast("Capitolo creato 🎉");
+      toast("Modulo creato 🎉");
       setShowInputChapter(false);
       router.refresh();
     } catch (error) {
-      toast.error("Si è verificato un errore nella creazione del capitolo 😭");
+      toast.error("Si è verificato un errore nella creazione del modulo 😭");
       console.log(error);
     }
   };

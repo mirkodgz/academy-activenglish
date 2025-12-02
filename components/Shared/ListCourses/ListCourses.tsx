@@ -56,7 +56,7 @@ export function ListCourses(props: ListCoursesProps) {
                     <div className="flex items-center gap-2 justify-between mt-2">
                       <IconBadge
                         icon={Book}
-                        text={`${chapters.length} Capitoli`}
+                        text={`${chapters.length} Moduli`}
                       />
 
                       {/* Nivel comentado - Por ahora no mostramos niveles */}

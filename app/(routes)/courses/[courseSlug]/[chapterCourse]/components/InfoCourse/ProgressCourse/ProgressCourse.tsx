@@ -36,7 +36,7 @@ export function ProgressCourse(props: ProgressCourseProps) {
       );
 
       toast(
-        isCompleted ? "Capitolo completato 🎉" : "Capitolo non completato 😭"
+        isCompleted ? "Modulo completato 🎉" : "Modulo non completato 😭"
       );
 
       if (isCompleted) {

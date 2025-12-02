@@ -43,7 +43,7 @@ export function Header() {
                 Crea il tuo corso
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
-                Inizia creando un nuovo corso. Potrai aggiungere capitoli,
+                Inizia creando un nuovo corso. Potrai aggiungere moduli,
                 immagini e configurazioni dopo.
               </DialogDescription>
             </DialogHeader>
