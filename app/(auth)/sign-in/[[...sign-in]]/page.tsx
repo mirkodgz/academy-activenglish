@@ -161,7 +161,8 @@ function SignInForm() {
 
       {/* Footer decorativo */}
       <div className="mt-6 text-center">
-        <p className="text-sm text-gray-500">
+        {/* Registro comentado - Por ahora no habrá registro de usuarios */}
+        {/* <p className="text-sm text-gray-500">
           Non hai un account?{" "}
           <a 
             href="/sign-up" 
@@ -169,7 +170,7 @@ function SignInForm() {
           >
             Registrati qui
           </a>
-        </p>
+        </p> */}
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
           <div className="h-px w-12 bg-gray-300"></div>
           <span>Active English</span>
