@@ -14,6 +14,11 @@ const urbanist = Urbanist({
 export const metadata: Metadata = {
   title: "Active English - Piattaforma di apprendimento",
   description: "Piattaforma di apprendimento online per corsi di inglese",
+  icons: {
+    icon: "/logoactiveenglish.png",
+    shortcut: "/logoactiveenglish.png",
+    apple: "/logoactiveenglish.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it">
-      <body className={`${urbanist.variable} font-sans antialiased`}>
+    <html lang="it" suppressHydrationWarning>
+      <body className={`${urbanist.variable} font-sans antialiased`} suppressHydrationWarning>
         <SessionProvider>
           <LayoutWrapper>
             {children}

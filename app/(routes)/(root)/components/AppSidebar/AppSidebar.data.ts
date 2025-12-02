@@ -5,6 +5,7 @@ import {
   GraduationCap,
   House,
   User,
+  Users,
 } from "lucide-react";
 
 // Rutas públicas (disponibles para todos)
@@ -58,6 +59,11 @@ export const routesTeacher = [
     title: "Analitiche",
     url: "/teacher/analytics",
     icon: ChartArea,
+  },
+  {
+    title: "Gestione Utenti",
+    url: "/teacher/users",
+    icon: Users,
   },
   {
     title: "Certificati",
