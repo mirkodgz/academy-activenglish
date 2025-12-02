@@ -11,10 +11,10 @@ export function ListCourses(props: ListCoursesProps) {
 
   return (
     <div>
-      <div className="my-4 mx-6 border rounded-lg bg-white p-6">
-        <h2 className="text-2xl font-normal">{title}</h2>
+      <div className="my-4 mx-6 border rounded-lg bg-card p-6">
+        <h2 className="text-2xl font-normal text-card-foreground">{title}</h2>
 
-        <div className="border-b-[1px] py-2" />
+        <div className="border-b-[1px] border-border py-2" />
 
         {courses && courses.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">
@@ -49,7 +49,7 @@ export function ListCourses(props: ListCoursesProps) {
                     />
                   </div>
                   <div className="p-2">
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                    <h3 className="text-lg font-semibold text-foreground truncate">
                       {title}
                     </h3>
 
@@ -73,7 +73,7 @@ export function ListCourses(props: ListCoursesProps) {
             )}
           </div>
         ) : (
-          <p className="text-gray-500 text-center mt-4">
+          <p className="text-muted-foreground text-center mt-4">
             Non ci sono corsi disponibili al momento.
           </p>
         )}

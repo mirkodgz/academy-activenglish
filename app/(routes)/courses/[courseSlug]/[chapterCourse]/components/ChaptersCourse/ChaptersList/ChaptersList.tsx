@@ -23,12 +23,12 @@ export function ChaptersList(props: ChaptersListProps) {
             href={`/courses/${courseSlug}/${chapter.id}`}
             key={chapter.id}
             className={`flex items-center justify-between
-                 border-gray-200 rounded-md transition-all duration-300 
+                 border-border rounded-md transition-all duration-300 
                  
                  ${
                    isCurrent
-                     ? "bg-[#0b3d4d] text-white"
-                     : "hover:bg-[#60CB58]/20 hover:shadow-lg"
+                     ? "bg-primary text-primary-foreground"
+                     : "hover:bg-accent hover:shadow-lg"
                  }
                  `}
           >

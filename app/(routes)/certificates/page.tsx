@@ -64,22 +64,22 @@ export default async function CertificatesPage() {
     const allCertificates = completedCertificates.flat().filter((cert): cert is NonNullable<typeof cert> => cert !== null);
 
     return (
-      <div className="m-6 p-6 border bg-white rounded-md">
+      <div className="m-6 p-6 border bg-card rounded-md">
         <div className="flex items-center gap-1 mb-6">
-          <div className="p-2 rounded-full bg-[#60CB58]">
-            <Award className="w-5 h-5 text-white" />
+          <div className="p-2 rounded-full bg-secondary">
+            <Award className="w-5 h-5 text-secondary-foreground" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold">Certificati degli studenti</h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <h3 className="text-xl font-semibold text-card-foreground">Certificati degli studenti</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               Visualizza e gestisci i certificati degli studenti che hanno completato i tuoi corsi
             </p>
           </div>
         </div>
 
         {allCertificates.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Award className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <div className="text-center py-12 text-muted-foreground">
+            <Award className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-lg font-medium mb-2">Nessun certificato disponibile</p>
             <p className="text-sm">
               Gli studenti che completano i tuoi corsi appariranno qui.
@@ -97,14 +97,14 @@ export default async function CertificatesPage() {
 
   if (!courses || courses.length === 0) {
     return (
-      <div className="m-6 p-6 border bg-white rounded-md">
+      <div className="m-6 p-6 border bg-card rounded-md">
         <div className="flex items-center gap-1 mb-4">
-          <div className="p-2 rounded-full bg-[#0b3d4d]">
-            <Award className="w-5 h-5 text-white" />
+          <div className="p-2 rounded-full bg-primary">
+            <Award className="w-5 h-5 text-primary-foreground" />
           </div>
-          <h3 className="text-xl font-semibold">Certificati dei corsi</h3>
+          <h3 className="text-xl font-semibold text-card-foreground">Certificati dei corsi</h3>
         </div>
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           <p>Non hai ancora completato nessun corso per ottenere un certificato.</p>
         </div>
       </div>
@@ -118,12 +118,12 @@ export default async function CertificatesPage() {
     })
   );
   return (
-    <div className="m-6 p-6 border bg-white rounded-md">
+    <div className="m-6 p-6 border bg-card rounded-md">
       <div className="flex items-center gap-1 mb-4">
-        <div className="p-2 rounded-full bg-[#0b3d4d]">
-          <Award className="w-5 h-5 text-white" />
+        <div className="p-2 rounded-full bg-primary">
+          <Award className="w-5 h-5 text-primary-foreground" />
         </div>
-        <h3 className="text-xl font-semibold">Certificati dei corsi</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">Certificati dei corsi</h3>
       </div>
 
       <CoursesList courses={coursesWithProgress} userName={userName} />

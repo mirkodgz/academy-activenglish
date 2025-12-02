@@ -62,7 +62,7 @@ export function CourseForm(props: CourseFormProps) {
   };
 
   return (
-    <div className="p-6 bg-white rounded-md">
+    <div className="p-6 bg-card rounded-md">
       <TitleBlock title="Configurazione del corso" icon={Cog} />
 
       <Form {...form}>
@@ -112,7 +112,7 @@ export function CourseForm(props: CourseFormProps) {
                     <Input 
                       value="webinar" 
                       disabled 
-                      className="bg-gray-100 cursor-not-allowed"
+                      className="bg-muted cursor-not-allowed"
                     />
                   </FormControl>
                   <FormDescription>

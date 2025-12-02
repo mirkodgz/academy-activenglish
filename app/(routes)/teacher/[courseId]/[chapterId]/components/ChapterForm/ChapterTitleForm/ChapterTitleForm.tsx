@@ -39,7 +39,7 @@ export function ChapterTitleForm(props: ChapterTitleFormProps) {
   }
 
   return (
-    <div className="p-6 rounded-md bg-white mt-6">
+    <div className="p-6 rounded-md bg-card mt-6">
       <Form {...form}>
         <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField

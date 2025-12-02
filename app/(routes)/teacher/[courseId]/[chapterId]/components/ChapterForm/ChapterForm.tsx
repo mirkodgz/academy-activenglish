@@ -46,7 +46,7 @@ export function ChapterForm(props: ChapterFormProps) {
 
   return (
     <div>
-      <div className="p-6 bg-white rounded-md">
+      <div className="p-6 bg-card rounded-md">
         <Button
           className="mb-4"
           variant="outline"
@@ -57,7 +57,7 @@ export function ChapterForm(props: ChapterFormProps) {
         </Button>
       </div>
 
-      <div className="p-6 mt-6 bg-white rounded-md flex justify-between items-center">
+      <div className="p-6 mt-6 bg-card rounded-md flex justify-between items-center">
         <TitleBlock title="Configurazione del capitolo" icon={Cog} />
 
         <div className="gap-2 flex items-center">

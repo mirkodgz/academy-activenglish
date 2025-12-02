@@ -18,7 +18,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="w-full bg-stone-100 flex flex-col min-h-screen">
+      <div className="w-full bg-background flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

@@ -24,12 +24,12 @@ export default async function OrdersPage() {
   const receipts = await getUserReceipts(user.id);
 
   return (
-    <div className="my-4 mx-6 border rounded-lg bg-white p-6">
+    <div className="my-4 mx-6 border rounded-lg bg-card p-6">
       <div className="flex items-center mb-6 gap-1">
-        <div className="p-2 rounded-full bg-[#0b3d4d]">
-          <ReceiptText className="w-5 h-5 text-white" />
+        <div className="p-2 rounded-full bg-primary">
+          <ReceiptText className="w-5 h-5 text-primary-foreground" />
         </div>
-        <h1 className="text-xl font-semibold">Tutti i miei ordini</h1>
+        <h1 className="text-xl font-semibold text-card-foreground">Tutti i miei ordini</h1>
       </div>
 
       <OrdersList purchases={purchases} receipts={receipts} />

@@ -31,12 +31,12 @@ export function InfoCourse(props: InfoCourseProps) {
       )}
 
       {videoUrl && (
-        <div className="bg-white rounded-md p-4 shadow-md">
+        <div className="bg-card rounded-md p-4 shadow-md">
           <VideoCourse videoUrl={videoUrl} />
         </div>
       )}
 
-      <div className="bg-white rounded-md p-6 shadow-md">
+      <div className="bg-card rounded-md p-6 shadow-md">
         <ProgressCourse
           userProgress={userProgress}
           chapterCourseId={chapterCourseId}
@@ -44,16 +44,16 @@ export function InfoCourse(props: InfoCourseProps) {
         />
       </div>
 
-      <div className="bg-white rounded-md p-6 shadow-md space-y-4">
+      <div className="bg-card rounded-md p-6 shadow-md space-y-4">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-3">{title}</h2>
+          <h2 className="text-2xl font-semibold text-card-foreground mb-3">{title}</h2>
           {/* Por ahora todos los cursos son webinar */}
-          <div className="w-fit mb-4 px-2 py-1 bg-[#0b3d4d] text-white rounded-full text-xs shadow-md">
+          <div className="w-fit mb-4 px-2 py-1 bg-primary text-primary-foreground rounded-full text-xs shadow-md">
             webinar
           </div>
         </div>
         {description && (
-          <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
         )}
       </div>
     </div>

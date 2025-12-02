@@ -3,6 +3,7 @@ import { Urbanist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/Providers/SessionProvider";
+import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 
 const urbanist = Urbanist({
@@ -29,12 +30,14 @@ export default function RootLayout({
   return (
     <html lang="it" suppressHydrationWarning>
       <body className={`${urbanist.variable} font-sans antialiased`} suppressHydrationWarning>
-        <SessionProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
-          <Toaster />
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+            <Toaster />
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

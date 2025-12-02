@@ -11,18 +11,18 @@ export function CourseContent(props: CourseContentProps) {
         {chapters.map((chapter, index) => (
           <div
             key={chapter.id}
-            className="flex items-start space-x-4 border p-2 rounded-lg 
-            hover:bg-gray-100 transition-all"
+            className="flex items-start space-x-4 border border-border p-2 rounded-lg 
+            hover:bg-accent transition-all"
           >
             <div
-              className="flex-shrink-0 bg-[#0b3d4d] text-white font-semibold rounded-full 
+              className="flex-shrink-0 bg-primary text-primary-foreground font-semibold rounded-full 
             w-8 h-8 flex items-center justify-center"
             >
               {index + 1}
             </div>
 
             <div className="flex-1">
-              <h4 className="text-xl font-medium text-gray-800">
+              <h4 className="text-xl font-medium text-foreground">
                 {chapter.title}
               </h4>
             </div>

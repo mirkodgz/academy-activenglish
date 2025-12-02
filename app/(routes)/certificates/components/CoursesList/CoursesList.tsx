@@ -10,7 +10,7 @@ export function CoursesList(props: CoursesListProps) {
       {courses.map((course) => (
         <div
           key={course.id}
-          className="border rounded-md p-4 flex gap-4 justify-between shadow-sm"
+          className="border rounded-md p-4 flex gap-4 justify-between shadow-sm bg-card"
         >
           <div className="flex gap-4 ">
             <div>
@@ -23,8 +23,8 @@ export function CoursesList(props: CoursesListProps) {
               />
             </div>
             <div className="flex flex-col">
-              <h2 className="text-xl font-semibold">{course.title}</h2>
-              <p className="max-w-sm text-gray-600 text-xs line-clamp-2">
+              <h2 className="text-xl font-semibold text-card-foreground">{course.title}</h2>
+              <p className="max-w-sm text-muted-foreground text-xs line-clamp-2">
                 {course.description}
               </p>
             </div>

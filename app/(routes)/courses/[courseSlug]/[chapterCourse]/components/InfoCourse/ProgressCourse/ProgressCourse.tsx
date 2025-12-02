@@ -74,7 +74,7 @@ export function ProgressCourse(props: ProgressCourseProps) {
     <div>
       <div
         className="my-4 w-full flex items-center gap-2 flex-col p-2 border 
-    rounded-md shadow-md bg-white"
+    rounded-md shadow-md bg-card"
       >
         <span className="text-sm">
           Progresso del corso | {progressPercentage}%

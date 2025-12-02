@@ -84,11 +84,11 @@ export function CourseImage(props: CourseImageProps) {
   };
 
   return (
-    <div className="p-4 rounded-lg bg-white h-fit">
+    <div className="p-4 rounded-lg bg-card h-fit">
       <TitleBlock title="Immagine del corso" icon={FileImage} />
 
       {isEditing ? (
-        <div className="bg-slate-100 p-4 mt-2 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="bg-muted p-4 mt-2 rounded-lg border-2 border-dashed border-border">
           <input
             ref={fileInputRef}
             type="file"
@@ -104,16 +104,16 @@ export function CourseImage(props: CourseImageProps) {
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0b3d4d]"></div>
-                <p className="text-sm text-gray-600">Caricamento in corso...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-[#0b3d4d]" />
-                <p className="text-sm text-gray-600">
+                <Upload className="w-8 h-8 text-primary" />
+                <p className="text-sm text-muted-foreground">
                   Clicca per selezionare un&apos;immagine
                 </p>
-                <p className="text-xs text-gray-500">Max 4MB</p>
+                <p className="text-xs text-muted-foreground">Max 4MB</p>
               </div>
             )}
           </label>

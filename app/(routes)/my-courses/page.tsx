@@ -19,16 +19,16 @@ export default async function MyCoursesPage() {
 
   if (!courses || courses.length === 0) {
     return (
-      <div className="my-4 mx-6 border rounded-lg bg-white p-12">
+      <div className="my-4 mx-6 border rounded-lg bg-card p-12">
         <div className="flex flex-col items-center justify-center gap-4 text-center">
-          <div className="p-4 rounded-full bg-[#0b3d4d]/10">
-            <BookOpen className="w-12 h-12 text-[#0b3d4d]" />
+          <div className="p-4 rounded-full bg-primary/10">
+            <BookOpen className="w-12 h-12 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            <h3 className="text-xl font-semibold text-card-foreground mb-2">
               Nessun corso disponibile
             </h3>
-            <p className="text-gray-500 max-w-md">
+            <p className="text-muted-foreground max-w-md">
               Non ci sono corsi disponibili al momento. Torna più tardi per vedere i nuovi corsi!
             </p>
           </div>

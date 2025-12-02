@@ -8,7 +8,7 @@ export function IconBadge(props: IconBadgeProps) {
       <div className="w-6 h-6 flex items-center justify-center bg-[#0b3d4d] rounded-full">
         <Icon className="w-4 h-4 text-white" />
       </div>
-      <span className="text-slate-500">{text}</span>
+      <span className="text-muted-foreground">{text}</span>
     </div>
   );
 }

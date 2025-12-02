@@ -21,8 +21,8 @@ export function TeacherCertificatesList({ certificates }: TeacherCertificatesLis
   return (
     <div className="space-y-4">
       <div className="mb-4">
-        <p className="text-sm text-gray-600">
-          Totale certificati emessi: <span className="font-semibold text-[#60CB58]">{certificates.length}</span>
+        <p className="text-sm text-muted-foreground">
+          Totale certificati emessi: <span className="font-semibold text-secondary">{certificates.length}</span>
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export function TeacherCertificatesList({ certificates }: TeacherCertificatesLis
         {certificates.map((cert, index) => (
           <div
             key={`${cert.courseId}-${cert.studentId}-${index}`}
-            className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow bg-white"
+            className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow bg-card"
           >
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
               <div className="flex gap-4 flex-1">
@@ -44,10 +44,10 @@ export function TeacherCertificatesList({ certificates }: TeacherCertificatesLis
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-1">
+                  <h4 className="text-lg font-semibold text-card-foreground mb-1">
                     {cert.courseTitle}
                   </h4>
-                  <div className="space-y-1 text-sm text-gray-600">
+                  <div className="space-y-1 text-sm text-muted-foreground">
                     <p>
                       <span className="font-medium">Studente:</span> {cert.studentName}
                     </p>

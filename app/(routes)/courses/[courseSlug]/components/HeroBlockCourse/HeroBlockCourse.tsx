@@ -55,16 +55,16 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
         <div className="flex items-center gap-3 mb-4">
           <h2 className="text-3xl font-semibold">{title}</h2>
           {/* Por ahora todos los cursos son webinar */}
-          <span className="px-3 py-1 bg-[#0b3d4d] text-white rounded-full text-xs font-medium shadow-md">
+          <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium shadow-md">
             webinar
           </span>
         </div>
         
         {description && (
-          <p className="text-balance text-gray-700 leading-relaxed">{description}</p>
+          <p className="text-balance text-muted-foreground leading-relaxed">{description}</p>
         )}
 
-        <div className="flex flex-col gap-4 text-gray-600">
+        <div className="flex flex-col gap-4 text-muted-foreground">
           <IconBadge icon={Timer} text="7h 40min" />
 
           <IconBadge
@@ -85,7 +85,7 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
           {purchaseCourse ? (
             <Button
               onClick={redirectToCourse}
-              className="hover:bg-[#0b3d4d] text-white font-semibold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               disabled={isLoading}
               size="lg"
             >
@@ -94,7 +94,7 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
           ) : (
             <Button
               onClick={enrollCourse}
-              className="hover:bg-[#0b3d4d] text-white font-semibold"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               disabled={isLoading}
               size="lg"
             >

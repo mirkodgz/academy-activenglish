@@ -2,8 +2,8 @@
 
 export function Footer() {
   return (
-    <footer className="py-4 px-6 border-t bg-white w-full">
-      <div className="flex justify-between items-center text-sm text-slate-500">
+    <footer className="py-4 px-6 border-t bg-background w-full">
+      <div className="flex justify-between items-center text-sm text-muted-foreground">
         <p>2025 © activenglish</p>
 
         {/* Comentado por ahora - enlaces de privacidad y términos de uso */}

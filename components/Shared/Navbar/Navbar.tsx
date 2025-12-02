@@ -8,6 +8,7 @@ import { useSession, signOut } from "next-auth/react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,21 +55,24 @@ export function Navbar() {
   };
 
   return (
-    <div className="flex justify-between p-4 border-b bg-white h-16">
+    <div className="flex justify-between p-4 border-b bg-background h-16">
       <SidebarTrigger />
 
       <div className="flex gap-4 items-center">
         <div
           className="flex w-full max-w-sm items-center 
-      border-gray-300 rounded-lg px-2.5 py-0.5"
+      border-border rounded-lg px-2.5 py-0.5 bg-background"
         >
-          <Search className="h-4 w-4 mr-2.5" />
+          <Search className="h-4 w-4 mr-2.5 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Cerca..."
-            className="w-full border-0"
+            className="w-full border-0 bg-transparent"
           />
         </div>
+
+        {/* Toggle de tema */}
+        <ThemeToggle />
 
         {/* Icono de notificaciones - Comentado temporalmente */}
         {/* <Button variant="outline">
@@ -114,9 +118,9 @@ export function Navbar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#0b3d4d]/10 text-[#0b3d4d]"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent text-foreground"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0b3d4d] text-white text-sm font-semibold">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold">
                 {userName
                   .split(" ")
                   .map((n) => n[0])

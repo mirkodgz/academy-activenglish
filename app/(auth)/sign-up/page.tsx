@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,16 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { setTheme } = useTheme();
+  
+  // Forzar tema claro en registro
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",

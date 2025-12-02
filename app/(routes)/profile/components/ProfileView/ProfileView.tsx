@@ -14,12 +14,12 @@ const EditProfileForm = dynamic(
     loading: () => (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-20 bg-gray-100 animate-pulse rounded" />
-          <div className="h-20 bg-gray-100 animate-pulse rounded" />
+          <div className="h-20 bg-muted animate-pulse rounded" />
+          <div className="h-20 bg-muted animate-pulse rounded" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-20 bg-gray-100 animate-pulse rounded" />
-          <div className="h-20 bg-gray-100 animate-pulse rounded" />
+          <div className="h-20 bg-muted animate-pulse rounded" />
+          <div className="h-20 bg-muted animate-pulse rounded" />
         </div>
       </div>
     ),
@@ -41,7 +41,7 @@ export function ProfileView({ user, userIsAdmin }: ProfileViewProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <Card className="border rounded-lg bg-white shadow-sm">
+    <Card className="border rounded-lg bg-card shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 mb-2">
@@ -51,9 +51,7 @@ export function ProfileView({ user, userIsAdmin }: ProfileViewProps) {
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className={`text-2xl ${
-                isEditing ? "text-[#0b3d4d]" : (userIsAdmin ? "text-[#60CB58]" : "text-[#0b3d4d]")
-              }`}>
+              <CardTitle className="text-2xl text-card-foreground">
                 {isEditing ? "Modifica profilo" : "Il mio profilo"}
               </CardTitle>
               <CardDescription>
@@ -72,7 +70,7 @@ export function ProfileView({ user, userIsAdmin }: ProfileViewProps) {
           ) : (
             <Button
               onClick={() => setIsEditing(true)}
-              className="min-w-[100px] bg-[#0b3d4d] hover:bg-[#0b3d4d]/90"
+              className="min-w-[100px] bg-primary hover:bg-primary/90"
             >
               <Edit className="w-4 h-4 mr-2" />
               Modifica
@@ -95,30 +93,30 @@ export function ProfileView({ user, userIsAdmin }: ProfileViewProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <User className="w-4 h-4" />
                 <span className="text-sm font-medium">Nome completo</span>
               </div>
-              <p className="text-lg font-semibold text-gray-800">
+              <p className="text-lg font-semibold text-foreground">
                 {user.firstName || ""} {user.lastName || ""}
                 {!user.firstName && !user.lastName && (
-                  <span className="text-gray-400 italic"> Non specificato</span>
+                  <span className="text-muted-foreground italic"> Non specificato</span>
                 )}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="w-4 h-4" />
                 <span className="text-sm font-medium">Email</span>
               </div>
-              <p className="text-lg font-semibold text-gray-800">
+              <p className="text-lg font-semibold text-foreground">
                 {user.email}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span className="text-sm font-medium">Ruolo</span>
               </div>

@@ -75,7 +75,7 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
   };
 
   return (
-    <div className="p-6 bg-white rounded-md h-fit relative">
+    <div className="p-6 bg-card rounded-md h-fit relative">
       <TitleBlock title="Capitoli del corso" icon={ListCheck} />
 
       <div className="flex gap-2 items-center justify-between mb-3">
@@ -101,9 +101,9 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
       {isUpdating && (
         <div
           className="absolute top-0 right-0 flex items-center justify-center 
-        w-full h-full bg-slate-500/20"
+        w-full h-full bg-background/80"
         >
-          <Loader2 className="w-6 h-6 animate-spin text-[#0b3d4d]" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       )}
 
@@ -126,20 +126,20 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="flex gap-2 items-center bg-slate-100 rounded-md
+                      className="flex gap-2 items-center bg-muted rounded-md
                         py-2 px-4 text-sm justify-between"
                     >
                       <div className="flex gap-2 items-center">
-                        <GripVertical className="w-4 h-4 text-gray-500" />
-                        <p>{chapter.title}</p>
+                        <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-foreground">{chapter.title}</p>
                       </div>
                       <div className="flex gap-2 items-center px-2 py-1">
                         {chapter.isPublished ? (
-                          <p className="px-2 py-1 text-[#60CB58]">
+                          <p className="px-2 py-1 text-secondary">
                             Pubblicato
                           </p>
                         ) : (
-                          <p className="px-2 py-1 text-gray-700">
+                          <p className="px-2 py-1 text-muted-foreground">
                             Non pubblicato
                           </p>
                         )}
@@ -147,7 +147,7 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
                           className="cursor-pointer"
                           onClick={() => onEditChapter(chapter.id)}
                         >
-                          <Pencil className="w-4 h-4 text-gray-500" />
+                          <Pencil className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
                     </div>

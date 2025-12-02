@@ -222,9 +222,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   };
 
   return (
-    <div className="mt-6 p-6 bg-white rounded-md">
+    <div className="mt-6 p-6 bg-card rounded-md">
       <TitleBlock title="Contenuto del capitolo" icon={FileText} />
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         Scegli un tipo di contenuto: video (URL o file), documento o immagine
       </p>
 
@@ -253,7 +253,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
         </TabsList>
 
         <TabsContent value="none" className="mt-4">
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <p>Nessun contenuto allegato</p>
             <p className="text-sm mt-2">Seleziona un tipo di contenuto sopra per aggiungerne uno</p>
           </div>
@@ -284,7 +284,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 </div>
                 {videoUrl.startsWith("http") ? (
                   <div className="rounded-md border p-4">
-                    <p className="text-sm text-gray-600 mb-2">URL Video:</p>
+                    <p className="text-sm text-muted-foreground mb-2">URL Video:</p>
                     <a
                       href={videoUrl}
                       target="_blank"
@@ -317,17 +317,17 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       Salva URL
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Supporta YouTube, Vimeo y otros servicios de video
                   </p>
                 </div>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Oppure</span>
+                    <span className="bg-card px-2 text-muted-foreground">Oppure</span>
                   </div>
                 </div>
 
@@ -347,18 +347,18 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   />
                   <label
                     htmlFor="chapter-video-upload"
-                    className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 rounded-md p-4 hover:border-[#0b3d4d] transition-colors"
+                    className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
                   >
                     {isUploading ? (
                       <div className="flex flex-col items-center gap-2">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0b3d4d]"></div>
-                        <p className="text-sm text-gray-600">Caricamento in corso...</p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
-                        <Upload className="w-8 h-8 text-[#0b3d4d]" />
-                        <p className="text-sm text-gray-600">Clicca per selezionare un video</p>
-                        <p className="text-xs text-gray-500">Max 512MB</p>
+                        <Upload className="w-8 h-8 text-primary" />
+                        <p className="text-sm text-muted-foreground">Clicca per selezionare un video</p>
+                        <p className="text-xs text-muted-foreground">Max 512MB</p>
                       </div>
                     )}
                   </label>
@@ -405,7 +405,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 </div>
                 <div className="rounded-md border p-4">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#0b3d4d]" />
+                    <FileText className="w-5 h-5 text-primary" />
                     <a
                       href={documentUrl}
                       target="_blank"
@@ -436,18 +436,18 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 />
                 <label
                   htmlFor="chapter-document-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 rounded-md p-4 hover:border-[#0b3d4d] transition-colors"
+                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0b3d4d]"></div>
-                      <p className="text-sm text-gray-600">Caricamento in corso...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-[#0b3d4d]" />
-                      <p className="text-sm text-gray-600">Clicca per selezionare un documento</p>
-                      <p className="text-xs text-gray-500">Max 16MB (PDF, DOC, DOCX, etc.)</p>
+                      <Upload className="w-8 h-8 text-primary" />
+                      <p className="text-sm text-muted-foreground">Clicca per selezionare un documento</p>
+                      <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
                     </div>
                   )}
                 </label>
@@ -517,18 +517,18 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 />
                 <label
                   htmlFor="chapter-image-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-300 rounded-md p-4 hover:border-[#0b3d4d] transition-colors"
+                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0b3d4d]"></div>
-                      <p className="text-sm text-gray-600">Caricamento in corso...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-[#0b3d4d]" />
-                      <p className="text-sm text-gray-600">Clicca per selezionare un&apos;immagine</p>
-                      <p className="text-xs text-gray-500">Max 4MB</p>
+                      <Upload className="w-8 h-8 text-primary" />
+                      <p className="text-sm text-muted-foreground">Clicca per selezionare un&apos;immagine</p>
+                      <p className="text-xs text-muted-foreground">Max 4MB</p>
                     </div>
                   )}
                 </label>
