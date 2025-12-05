@@ -14,6 +14,7 @@ import { TitleBlock } from "../../../../components";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
+import { UploadButton } from "@/utils/uploadthing";
 
 export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const { chapterId, courseId, videoUrl, documentUrl, imageUrl } = props;
@@ -83,6 +84,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
     // Validaciones según el tipo
     if (type === "image") {
+      // Las imágenes siguen usando Cloudinary (optimización de imágenes)
       if (!file.type.startsWith("image/")) {
         toast.error("Per favore, seleziona un file immagine");
         return;
@@ -91,66 +93,40 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
         toast.error("L'immagine deve essere inferiore a 4MB");
         return;
       }
-    } else if (type === "video") {
-      if (!file.type.startsWith("video/")) {
-        toast.error("Per favore, seleziona un file video");
-        return;
-      }
-      if (file.size > 512 * 1024 * 1024) {
-        toast.error("Il video deve essere inferiore a 512MB");
-        return;
-      }
-    } else if (type === "document") {
-      const allowedTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ];
-      if (!allowedTypes.includes(file.type) && !file.type.includes("text/")) {
-        toast.error("Tipo di documento non supportato. Usa PDF, DOC, DOCX, etc.");
-        return;
-      }
-      if (file.size > 16 * 1024 * 1024) {
-        toast.error("Il documento deve essere inferiore a 16MB");
-        return;
+
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", type || "");
+
+        const response = await axios.post("/api/cloudinary/upload-chapter", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (response.data?.url) {
+          await onSubmit(response.data.url, type);
+        } else {
+          throw new Error("URL non ricevuta");
+        }
+      } catch (error: unknown) {
+        console.error("Error uploading file:", error);
+        const errorMessage = error && typeof error === 'object' && 'response' in error 
+          ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined;
+        toast.error(
+          errorMessage || "Errore durante il caricamento dell'immagine"
+        );
+      } finally {
+        setIsUploading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     }
-
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", type || "");
-
-      const response = await axios.post("/api/cloudinary/upload-chapter", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response.data?.url) {
-        await onSubmit(response.data.url, type);
-      } else {
-        throw new Error("URL non ricevuta");
-      }
-    } catch (error: unknown) {
-      console.error("Error uploading file:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error 
-        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
-        : undefined;
-      toast.error(
-        errorMessage ||
-        `Errore durante il caricamento del ${type === "video" ? "video" : type === "document" ? "documento" : "immagine"}`
-      );
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
+    // Videos y documentos ahora usan UploadThing (no se suben aquí, se usa UploadButton)
   };
 
   const handleRemove = async (type: AttachmentType) => {
@@ -333,35 +309,20 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
                 <div className="space-y-2">
                   <Label>Opzione 2: Carica file video</Label>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file, "video");
+                  <UploadButton
+                    endpoint="chapterVideo"
+                    onClientUploadComplete={(res) => {
+                      if (res && res[0]?.url) {
+                        onSubmit(res[0].url, "video");
+                        toast.success("Video caricato con successo! 🔥");
+                      }
                     }}
-                    className="hidden"
-                    id="chapter-video-upload"
-                    disabled={isUploading}
+                    onUploadError={(error: Error) => {
+                      toast.error(`Errore durante il caricamento: ${error.message}`);
+                    }}
+                    className="w-full ut-button:bg-primary ut-button:text-primary-foreground ut-button:hover:bg-primary/90"
                   />
-                  <label
-                    htmlFor="chapter-video-upload"
-                    className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
-                  >
-                    {isUploading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <Upload className="w-8 h-8 text-primary" />
-                        <p className="text-sm text-muted-foreground">Clicca per selezionare un video</p>
-                        <p className="text-xs text-muted-foreground">Max 512MB</p>
-                      </div>
-                    )}
-                  </label>
+                  <p className="text-xs text-muted-foreground">Max 512GB (UploadThing)</p>
                 </div>
 
                 {videoUrl && (
@@ -422,40 +383,24 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
             {(isEditing || !documentUrl) && (
               <div className="space-y-4 border rounded-md p-4">
                 <Label>Carica documento (PDF, DOC, DOCX, etc.)</Label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx,.txt,.xls,.xlsx"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileUpload(file, "document");
+                <UploadButton
+                  endpoint="chapterDocument"
+                  onClientUploadComplete={(res) => {
+                    if (res && res[0]?.url) {
+                      onSubmit(res[0].url, "document");
+                      toast.success("Documento caricato con successo! 🔥");
+                    }
                   }}
-                  className="hidden"
-                  id="chapter-document-upload"
-                  disabled={isUploading}
+                  onUploadError={(error: Error) => {
+                    toast.error(`Errore durante il caricamento: ${error.message}`);
+                  }}
+                  className="w-full ut-button:bg-primary ut-button:text-primary-foreground ut-button:hover:bg-primary/90"
                 />
-                <label
-                  htmlFor="chapter-document-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
-                >
-                  {isUploading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-primary" />
-                      <p className="text-sm text-muted-foreground">Clicca per selezionare un documento</p>
-                      <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
-                    </div>
-                  )}
-                </label>
+                <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
                 {documentUrl && (
                   <Button
                     variant="outline"
                     onClick={() => setIsEditing(false)}
-                    disabled={isUploading}
                   >
                     Annulla
                   </Button>
