@@ -68,6 +68,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
   const [videoUrlInput, setVideoUrlInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Array<{ name: string; progress: number }>>([]);
 
   const router = useRouter();
 
@@ -107,6 +108,44 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
     });
     setResources(parsedResources);
   }, [initialResources]);
+
+  // Fallback: Si onClientUploadComplete no se ejecuta, intentar guardar manualmente cuando el progreso llegue a 100
+  useEffect(() => {
+    const completedUploads = uploadingFiles.filter(f => f.progress === 100);
+    if (completedUploads.length > 0) {
+      console.log("⚠️ Upload completed but onClientUploadComplete may not have fired.");
+      console.log("💡 Attempting to reload data from server...");
+      
+      // Esperar un poco para que el servidor procese el archivo
+      const timeout = setTimeout(async () => {
+        try {
+          // Recargar los datos del servidor
+          router.refresh();
+          
+          // También intentar obtener los recursos actuales directamente desde la API
+          // Esto es un fallback adicional en caso de que router.refresh() no funcione
+          const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
+          if (response.data?.resources) {
+            const serverResources = parseResources(response.data.resources);
+            console.log("📥 Resources from server (fallback):", serverResources);
+            
+            // Si hay más recursos en el servidor que en el estado local, actualizar
+            if (serverResources.length > resources.length) {
+              console.log("✅ Found new resources on server, updating local state");
+              setResources(serverResources);
+              toast.success("File caricato con successo! 🔥");
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error in fallback resource fetch:", error);
+        } finally {
+          setUploadingFiles([]);
+        }
+      }, 3000); // Aumentar el tiempo de espera a 3 segundos para dar más tiempo al servidor
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [uploadingFiles, router, courseId, chapterId, resources.length]);
 
   const onSubmit = async (url: string, type: AttachmentType) => {
     try {
@@ -450,9 +489,12 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
             <div className="border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
               <UploadButton
                 endpoint="chapterDocument"
+                input={{ courseId, chapterId }}
                 onClientUploadComplete={(res) => {
                   console.log("🔥🔥🔥 === UPLOAD COMPLETE (CLIENT) === 🔥🔥🔥");
                   console.log("🔥 CALLBACK EXECUTED - res:", res);
+                  // Limpiar archivos en progreso cuando el callback se ejecuta
+                  setUploadingFiles([]);
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
@@ -594,9 +636,46 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 onUploadError={(error: Error) => {
                   console.error("Upload error:", error);
                   toast.error(`Errore durante il caricamento: ${error.message}`);
+                  setUploadingFiles([]);
                 }}
                 onUploadBegin={(name) => {
                   console.log("Upload begin:", name);
+                  setUploadingFiles(prev => [...prev, { name, progress: 0 }]);
+                }}
+                onUploadProgress={async (progress) => {
+                  console.log("Upload progress (documents):", progress);
+                  setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
+                  
+                  // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
+                  if (progress === 100) {
+                    console.log("⚠️ Upload progress reached 100% but onClientUploadComplete may not fire");
+                    console.log("💡 Attempting to fetch file info from UploadThing response...");
+                    
+                    // Esperar un poco y luego intentar obtener los recursos desde el servidor
+                    setTimeout(async () => {
+                      try {
+                        console.log("🔄 Polling server for new resources...");
+                        const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
+                        if (response.data?.resources) {
+                          const serverResources = parseResources(response.data.resources);
+                          console.log("📥 Resources from server (polling):", serverResources);
+                          
+                          // Si hay más recursos en el servidor que en el estado local, actualizar
+                          if (serverResources.length > resources.length) {
+                            console.log("✅ Found new resources on server, updating local state");
+                            setResources(serverResources);
+                            toast.success("File caricato con successo! 🔥");
+                            setUploadingFiles([]);
+                            router.refresh();
+                          } else {
+                            console.log("⚠️ No new resources found on server yet");
+                          }
+                        }
+                      } catch (error) {
+                        console.error("❌ Error polling server for resources:", error);
+                      }
+                    }, 2000); // Esperar 2 segundos para que el servidor procese
+                  }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
               />
@@ -681,11 +760,14 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
             <div className="relative border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
               <UploadButton
                 endpoint="chapterImages"
+                input={{ courseId, chapterId }}
                 onClientUploadComplete={(res) => {
                   console.log("=== UPLOAD COMPLETE (IMAGES) ===");
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
+                  // Limpiar archivos en progreso cuando el callback se ejecuta
+                  setUploadingFiles([]);
                   
                   try {
                     if (!res) {
@@ -790,9 +872,46 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 onUploadError={(error: Error) => {
                   console.error("Upload error:", error);
                   toast.error(`Errore durante il caricamento: ${error.message}`);
+                  setUploadingFiles([]);
                 }}
                 onUploadBegin={(name) => {
                   console.log("Upload begin:", name);
+                  setUploadingFiles(prev => [...prev, { name, progress: 0 }]);
+                }}
+                onUploadProgress={async (progress) => {
+                  console.log("Upload progress (images):", progress);
+                  setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
+                  
+                  // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
+                  if (progress === 100) {
+                    console.log("⚠️ Upload progress reached 100% but onClientUploadComplete may not fire");
+                    console.log("💡 Attempting to fetch file info from UploadThing response...");
+                    
+                    // Esperar un poco y luego intentar obtener los recursos desde el servidor
+                    setTimeout(async () => {
+                      try {
+                        console.log("🔄 Polling server for new resources...");
+                        const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
+                        if (response.data?.resources) {
+                          const serverResources = parseResources(response.data.resources);
+                          console.log("📥 Resources from server (polling):", serverResources);
+                          
+                          // Si hay más recursos en el servidor que en el estado local, actualizar
+                          if (serverResources.length > resources.length) {
+                            console.log("✅ Found new resources on server, updating local state");
+                            setResources(serverResources);
+                            toast.success("Immagine caricata con successo! 🔥");
+                            setUploadingFiles([]);
+                            router.refresh();
+                          } else {
+                            console.log("⚠️ No new resources found on server yet");
+                          }
+                        }
+                      } catch (error) {
+                        console.error("❌ Error polling server for resources:", error);
+                      }
+                    }, 2000); // Esperar 2 segundos para que el servidor procese
+                  }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
               />

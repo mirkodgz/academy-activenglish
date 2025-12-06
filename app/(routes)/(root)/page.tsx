@@ -24,7 +24,7 @@ export default async function Home() {
     <div>
       <ExploreCourses />
 
-      <ListCourses title="Corsi" courses={listCourses || []} />
+      <ListCourses title="I TUOI CORSI" courses={listCourses || []} />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function ListCourses(props: ListCoursesProps) {
   return (
     <div>
       <div className="my-4 mx-6 border rounded-lg bg-card p-6">
-        <h2 className="text-2xl font-normal text-card-foreground">{title}</h2>
+        <h2 className="text-2xl font-bold text-card-foreground">{title}</h2>
 
         <div className="border-b-[1px] border-border py-2" />
 

@@ -14,12 +14,13 @@ export function CourseContent(props: CourseContentProps) {
             className="flex items-start space-x-4 border border-border p-2 rounded-lg 
             hover:bg-accent transition-all"
           >
-            <div
+            {/* Número y círculo comentados - se incluyen internamente */}
+            {/* <div
               className="flex-shrink-0 bg-primary text-primary-foreground font-semibold rounded-full 
             w-8 h-8 flex items-center justify-center"
             >
               {index + 1}
-            </div>
+            </div> */}
 
             <div className="flex-1">
               <h4 className="text-xl font-medium text-foreground">
