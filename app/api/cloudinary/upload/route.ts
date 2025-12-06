@@ -6,22 +6,22 @@ import { v2 as cloudinary } from "cloudinary";
 const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
 if (cloudinaryUrl) {
-  console.log("✅ Usando CLOUDINARY_URL para configuración");
+  console.log("Usando CLOUDINARY_URL para configuración");
   // Si CLOUDINARY_URL está configurada, Cloudinary la detecta automáticamente
   cloudinary.config();
 } else {
-  console.log("⚠️ CLOUDINARY_URL no encontrada, usando variables individuales");
+  console.log("CLOUDINARY_URL no encontrada, usando variables individuales");
   // Fallback a variables individuales
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dfm9igqy1";
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!apiKey || !apiSecret) {
-    console.error("❌ Faltan CLOUDINARY_API_KEY o CLOUDINARY_API_SECRET");
+    console.error("Faltan CLOUDINARY_API_KEY o CLOUDINARY_API_SECRET");
     throw new Error("Cloudinary no está configurado correctamente. Verifica las variables de entorno.");
   }
 
-  console.log(`✅ Configurando Cloudinary con cloud_name: ${cloudName}, api_key: ${apiKey.substring(0, 5)}...`);
+  console.log(`Configurando Cloudinary con cloud_name: ${cloudName}, api_key: ${apiKey.substring(0, 5)}...`);
   
   cloudinary.config({
     cloud_name: cloudName,

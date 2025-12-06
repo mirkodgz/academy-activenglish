@@ -55,11 +55,11 @@ export default async function ChapterPage({
   
   // Verificar todas las claves del objeto chapter
   const chapterKeys = Object.keys(chapter);
-  console.log("🔍 [PAGE] Chapter keys from Prisma:", chapterKeys);
-  console.log("🔍 [PAGE] Chapter has 'resources' key:", 'resources' in chapter);
-  console.log("🔍 [PAGE] Chapter object (full):", JSON.stringify(chapter, null, 2));
+  console.log("[PAGE] Chapter keys from Prisma:", chapterKeys);
+  console.log("[PAGE] Chapter has 'resources' key:", 'resources' in chapter);
+  console.log("[PAGE] Chapter object (full):", JSON.stringify(chapter, null, 2));
   
-  console.log("🔍 [PAGE] Chapter from Prisma (detailed):", {
+  console.log("[PAGE] Chapter from Prisma (detailed):", {
     id: chapter.id,
     title: chapter.title,
     resources: chapterWithResources.resources,

@@ -47,8 +47,8 @@ export const ourFileRouter = {
       })
     )
     .middleware(async ({ input }) => {
-      console.log("🔐 [SERVER] Middleware ejecutado para chapterDocument");
-      console.log("📥 [SERVER] Input recibido:", JSON.stringify(input, null, 2));
+      console.log("[SERVER] Middleware ejecutado para chapterDocument");
+      console.log("[SERVER] Input recibido:", JSON.stringify(input, null, 2));
       
       // Verificar que las variables de entorno estén configuradas
       // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
@@ -56,25 +56,25 @@ export const ourFileRouter = {
       const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
       
       if (!hasToken && !hasSecretAndAppId) {
-        console.error("❌ [SERVER] Uploadthing no está configurado. Faltan variables de entorno");
+        console.error("[SERVER] Uploadthing no está configurado. Faltan variables de entorno");
         throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
-      console.log("✅ [SERVER] Variables de entorno de UploadThing configuradas correctamente");
+      console.log("[SERVER] Variables de entorno de UploadThing configuradas correctamente");
       
       // Validar que el input tenga los campos necesarios
       if (!input || typeof input !== 'object' || !('courseId' in input) || !('chapterId' in input)) {
-        console.error("❌ [SERVER] Input inválido o faltan courseId/chapterId:", input);
+        console.error("[SERVER] Input inválido o faltan courseId/chapterId:", input);
         throw new Error("Input inválido: se requieren courseId y chapterId");
       }
       
-      console.log("✅ [SERVER] Input válido, retornando metadata:", { courseId: input.courseId, chapterId: input.chapterId });
+      console.log("[SERVER] Input válido, retornando metadata:", { courseId: input.courseId, chapterId: input.chapterId });
       
       // Retornar el input para que esté disponible en onUploadComplete
       return { courseId: input.courseId, chapterId: input.chapterId };
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("🔥🔥🔥 [SERVER] ===== onUploadComplete EJECUTADO =====");
-      console.log("✅ [SERVER] Document uploaded successfully to UploadThing:", {
+      console.log("[SERVER] ===== onUploadComplete EJECUTADO =====");
+      console.log("[SERVER] Document uploaded successfully to UploadThing:", {
         url: file.url,
         name: file.name,
         size: file.size,
@@ -82,9 +82,9 @@ export const ourFileRouter = {
         type: file.type,
         metadata,
       });
-      console.log("📦 [SERVER] Metadata recibido:", JSON.stringify(metadata, null, 2));
-      console.log("📦 [SERVER] Metadata type:", typeof metadata);
-      console.log("📦 [SERVER] Metadata keys:", metadata ? Object.keys(metadata) : "null");
+      console.log("[SERVER] Metadata recibido:", JSON.stringify(metadata, null, 2));
+      console.log("[SERVER] Metadata type:", typeof metadata);
+      console.log("[SERVER] Metadata keys:", metadata ? Object.keys(metadata) : "null");
       
       // Guardar automáticamente en la BD usando courseId y chapterId del metadata
       if (metadata && typeof metadata === 'object' && 'courseId' in metadata && 'chapterId' in metadata) {
@@ -92,7 +92,7 @@ export const ourFileRouter = {
           const courseId = metadata.courseId as string;
           const chapterId = metadata.chapterId as string;
           
-          console.log("💾 [SERVER] Auto-saving file to database:", { courseId, chapterId, fileUrl: file.url });
+          console.log("[SERVER] Auto-saving file to database:", { courseId, chapterId, fileUrl: file.url });
           
           // Importar Prisma dinámicamente para evitar problemas de importación circular
           const prisma = (await import("@/lib/prisma")).default;
@@ -104,7 +104,7 @@ export const ourFileRouter = {
           });
           
           if (!chapter) {
-            console.error("❌ [SERVER] Chapter not found:", { courseId, chapterId });
+            console.error("[SERVER] Chapter not found:", { courseId, chapterId });
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
@@ -143,7 +143,7 @@ export const ourFileRouter = {
           // Verificar si el archivo ya existe (por URL)
           const fileExists = existingResources.some(r => r.url === file.url);
           if (fileExists) {
-            console.log("⚠️ [SERVER] File already exists in database, skipping");
+            console.log("[SERVER] File already exists in database, skipping");
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
@@ -163,13 +163,13 @@ export const ourFileRouter = {
             data: { resources: updatedResources },
           });
           
-          console.log("✅ [SERVER] File auto-saved to database successfully");
+          console.log("[SERVER] File auto-saved to database successfully");
         } catch (error) {
-          console.error("❌ [SERVER] Error auto-saving file to database:", error);
+          console.error("[SERVER] Error auto-saving file to database:", error);
           // No lanzar error, solo loguear - el cliente puede guardar manualmente
         }
       } else {
-        console.log("⚠️ [SERVER] No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
       }
       
       // Retornar los datos que el cliente espera
@@ -182,7 +182,7 @@ export const ourFileRouter = {
         type: file.type // Agregar type para que el cliente pueda determinar el tipo de archivo
       };
       
-      console.log("📤 [SERVER] Returning to client:", result);
+      console.log("[SERVER] Returning to client:", result);
       return result;
     }),
   chapterImages: f({
@@ -195,8 +195,8 @@ export const ourFileRouter = {
       })
     )
     .middleware(async ({ input }) => {
-      console.log("🔐 Middleware ejecutado para chapterImages");
-      console.log("📥 Input recibido:", input);
+      console.log("[SERVER] Middleware ejecutado para chapterImages");
+      console.log("[SERVER] Input recibido:", input);
       
       // Verificar que las variables de entorno estén configuradas
       // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
@@ -211,7 +211,7 @@ export const ourFileRouter = {
       return { courseId: input.courseId, chapterId: input.chapterId };
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("✅ [SERVER] Image uploaded successfully to UploadThing:", {
+      console.log("[SERVER] Image uploaded successfully to UploadThing:", {
         url: file.url,
         name: file.name,
         size: file.size,
@@ -226,7 +226,7 @@ export const ourFileRouter = {
           const courseId = metadata.courseId as string;
           const chapterId = metadata.chapterId as string;
           
-          console.log("💾 [SERVER] Auto-saving image to database:", { courseId, chapterId, fileUrl: file.url });
+          console.log("[SERVER] Auto-saving image to database:", { courseId, chapterId, fileUrl: file.url });
           
           // Importar Prisma dinámicamente para evitar problemas de importación circular
           const prisma = (await import("@/lib/prisma")).default;
@@ -238,7 +238,7 @@ export const ourFileRouter = {
           });
           
           if (!chapter) {
-            console.error("❌ [SERVER] Chapter not found:", { courseId, chapterId });
+            console.error("[SERVER] Chapter not found:", { courseId, chapterId });
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
@@ -277,7 +277,7 @@ export const ourFileRouter = {
           // Verificar si el archivo ya existe (por URL)
           const fileExists = existingResources.some(r => r.url === file.url);
           if (fileExists) {
-            console.log("⚠️ [SERVER] Image already exists in database, skipping");
+            console.log("[SERVER] Image already exists in database, skipping");
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
@@ -297,13 +297,13 @@ export const ourFileRouter = {
             data: { resources: updatedResources },
           });
           
-          console.log("✅ [SERVER] Image auto-saved to database successfully");
+          console.log("[SERVER] Image auto-saved to database successfully");
         } catch (error) {
-          console.error("❌ [SERVER] Error auto-saving image to database:", error);
+          console.error("[SERVER] Error auto-saving image to database:", error);
           // No lanzar error, solo loguear - el cliente puede guardar manualmente
         }
       } else {
-        console.log("⚠️ [SERVER] No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
       }
       
       return { url: file.url, name: file.name, size: file.size, type: file.type };

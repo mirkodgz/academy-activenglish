@@ -61,8 +61,8 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   
   // Parsear recursos iniciales correctamente
   const parsedInitialResources = parseResources(initialResources);
-  console.log("🔍 Initial resources received:", initialResources);
-  console.log("✅ Parsed initial resources:", parsedInitialResources);
+  console.log("Initial resources received:", initialResources);
+  console.log("Parsed initial resources:", parsedInitialResources);
   
   const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(parsedInitialResources);
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
@@ -79,8 +79,8 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   });
   const imageResources = resources.filter(r => r.type?.toLowerCase() === "image");
   
-  console.log("📄 Document resources:", documentResources);
-  console.log("🖼️ Image resources:", imageResources);
+  console.log("Document resources:", documentResources);
+  console.log("Image resources:", imageResources);
 
   // Determinar qué tipo de archivo está actualmente configurado
   useEffect(() => {
@@ -101,7 +101,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   // Actualizar recursos cuando cambien desde el servidor
   useEffect(() => {
     const parsedResources = parseResources(initialResources);
-    console.log("📥 Resources updated from props (useEffect):", {
+    console.log("Resources updated from props (useEffect):", {
       initialResources,
       parsedResources,
       resourcesLength: parsedResources.length
@@ -113,8 +113,8 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   useEffect(() => {
     const completedUploads = uploadingFiles.filter(f => f.progress === 100);
     if (completedUploads.length > 0) {
-      console.log("⚠️ Upload completed but onClientUploadComplete may not have fired.");
-      console.log("💡 Attempting to reload data from server...");
+      console.log("Upload completed but onClientUploadComplete may not have fired.");
+      console.log("Attempting to reload data from server...");
       
       // Esperar un poco para que el servidor procese el archivo
       const timeout = setTimeout(async () => {
@@ -127,17 +127,17 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
           const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
           if (response.data?.resources) {
             const serverResources = parseResources(response.data.resources);
-            console.log("📥 Resources from server (fallback):", serverResources);
+            console.log("Resources from server (fallback):", serverResources);
             
             // Si hay más recursos en el servidor que en el estado local, actualizar
             if (serverResources.length > resources.length) {
-              console.log("✅ Found new resources on server, updating local state");
+              console.log("Found new resources on server, updating local state");
               setResources(serverResources);
               toast.success("File caricato con successo! 🔥");
             }
           }
         } catch (error) {
-          console.error("❌ Error in fallback resource fetch:", error);
+          console.error("Error in fallback resource fetch:", error);
         } finally {
           setUploadingFiles([]);
         }
@@ -491,8 +491,8 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 endpoint="chapterDocument"
                 input={{ courseId, chapterId }}
                 onClientUploadComplete={(res) => {
-                  console.log("🔥🔥🔥 === UPLOAD COMPLETE (CLIENT) === 🔥🔥🔥");
-                  console.log("🔥 CALLBACK EXECUTED - res:", res);
+                  console.log("=== UPLOAD COMPLETE (CLIENT) ===");
+                  console.log("CALLBACK EXECUTED - res:", res);
                   // Limpiar archivos en progreso cuando el callback se ejecuta
                   setUploadingFiles([]);
                   console.log("Full response:", JSON.stringify(res, null, 2));
@@ -503,9 +503,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   
                   try {
                     if (!res) {
-                      console.error("⚠️ Response is null or undefined - UploadThing callback may not have executed");
-                      console.log("💡 This is normal in development. The file is uploaded but callback may not fire.");
-                      console.log("💡 Checking UploadThing dashboard to get file URL...");
+                      console.error("Response is null or undefined - UploadThing callback may not have executed");
+                      console.log("This is normal in development. The file is uploaded but callback may not fire.");
+                      console.log("Checking UploadThing dashboard to get file URL...");
                       
                       // Mostrar mensaje al usuario
                       toast.info("File uploaded to UploadThing. Please check the dashboard to get the URL.");
@@ -591,13 +591,13 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     
                     // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
                     setResources(updatedResources);
-                    console.log("✅ Estado local actualizado, recursos visibles:", updatedResources);
+                    console.log("Estado local actualizado, recursos visibles:", updatedResources);
                     
                     console.log("Saving to database...");
                     axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
                       resources: updatedResources,
                     }).then((response) => {
-                      console.log("✅ Saved successfully:", response.data);
+                      console.log("Saved successfully:", response.data);
                       
                       // Verificar que los recursos se guardaron correctamente en la respuesta
                       if (response.data?.resources) {
@@ -605,10 +605,10 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                           ? response.data.resources 
                           : JSON.parse(response.data.resources || "[]");
                         setResources(savedResources);
-                        console.log("✅ Resources updated from response:", savedResources);
+                        console.log("Resources updated from response:", savedResources);
                       } else {
                         // Si la respuesta no incluye recursos, mantener el estado local actualizado
-                        console.log("⚠️ Response no incluye resources, manteniendo estado local");
+                        console.log("Response no incluye resources, manteniendo estado local");
                       }
                       
                       toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}! 🔥`);
@@ -621,14 +621,14 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                         router.refresh();
                       }, 500);
                     }).catch((error) => {
-                      console.error("❌ Error saving to database:", error);
+                      console.error("Error saving to database:", error);
                       console.error("Error details:", error.response?.data || error.message);
                       toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
                       // Revertir al estado anterior si falla
                       setResources(resources);
                     });
                   } catch (error: unknown) {
-                    console.error("❌ Exception in onClientUploadComplete:", error);
+                    console.error("Exception in onClientUploadComplete:", error);
                     const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
                     toast.error(`Errore: ${errorMessage}`);
                   }
@@ -648,31 +648,31 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   
                   // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
                   if (progress === 100) {
-                    console.log("⚠️ Upload progress reached 100% but onClientUploadComplete may not fire");
-                    console.log("💡 Attempting to fetch file info from UploadThing response...");
+                    console.log("Upload progress reached 100% but onClientUploadComplete may not fire");
+                    console.log("Attempting to fetch file info from UploadThing response...");
                     
                     // Esperar un poco y luego intentar obtener los recursos desde el servidor
                     setTimeout(async () => {
                       try {
-                        console.log("🔄 Polling server for new resources...");
+                        console.log("Polling server for new resources...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
                         if (response.data?.resources) {
                           const serverResources = parseResources(response.data.resources);
-                          console.log("📥 Resources from server (polling):", serverResources);
+                          console.log("Resources from server (polling):", serverResources);
                           
                           // Si hay más recursos en el servidor que en el estado local, actualizar
                           if (serverResources.length > resources.length) {
-                            console.log("✅ Found new resources on server, updating local state");
+                            console.log("Found new resources on server, updating local state");
                             setResources(serverResources);
                             toast.success("File caricato con successo! 🔥");
                             setUploadingFiles([]);
                             router.refresh();
                           } else {
-                            console.log("⚠️ No new resources found on server yet");
+                            console.log("No new resources found on server yet");
                           }
                         }
                       } catch (error) {
-                        console.error("❌ Error polling server for resources:", error);
+                        console.error("Error polling server for resources:", error);
                       }
                     }, 2000); // Esperar 2 segundos para que el servidor procese
                   }
@@ -829,13 +829,13 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     
                     // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
                     setResources(updatedResources);
-                    console.log("✅ Estado local actualizado, recursos visibles:", updatedResources);
+                    console.log("Estado local actualizado, recursos visibles:", updatedResources);
                     
                     console.log("Saving to database...");
                     axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
                       resources: updatedResources,
                     }).then((response) => {
-                      console.log("✅ Saved successfully:", response.data);
+                      console.log("Saved successfully:", response.data);
                       
                       // Verificar que los recursos se guardaron correctamente en la respuesta
                       if (response.data?.resources) {
@@ -843,10 +843,10 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                           ? response.data.resources 
                           : JSON.parse(response.data.resources || "[]");
                         setResources(savedResources);
-                        console.log("✅ Resources updated from response:", savedResources);
+                        console.log("Resources updated from response:", savedResources);
                       } else {
                         // Si la respuesta no incluye recursos, mantener el estado local actualizado
-                        console.log("⚠️ Response no incluye resources, manteniendo estado local");
+                        console.log("Response no incluye resources, manteniendo estado local");
                       }
                       
                       toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}! 🔥`);
@@ -857,14 +857,14 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                         router.refresh();
                       }, 500);
                     }).catch((error) => {
-                      console.error("❌ Error saving to database:", error);
+                      console.error("Error saving to database:", error);
                       console.error("Error details:", error.response?.data || error.message);
                       toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
                       // Revertir al estado anterior si falla
                       setResources(resources);
                     });
                   } catch (error: unknown) {
-                    console.error("❌ Exception in onClientUploadComplete:", error);
+                    console.error("Exception in onClientUploadComplete:", error);
                     const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
                     toast.error(`Errore: ${errorMessage}`);
                   }
@@ -884,31 +884,31 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   
                   // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
                   if (progress === 100) {
-                    console.log("⚠️ Upload progress reached 100% but onClientUploadComplete may not fire");
-                    console.log("💡 Attempting to fetch file info from UploadThing response...");
+                    console.log("Upload progress reached 100% but onClientUploadComplete may not fire");
+                    console.log("Attempting to fetch file info from UploadThing response...");
                     
                     // Esperar un poco y luego intentar obtener los recursos desde el servidor
                     setTimeout(async () => {
                       try {
-                        console.log("🔄 Polling server for new resources...");
+                        console.log("Polling server for new resources...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
                         if (response.data?.resources) {
                           const serverResources = parseResources(response.data.resources);
-                          console.log("📥 Resources from server (polling):", serverResources);
+                          console.log("Resources from server (polling):", serverResources);
                           
                           // Si hay más recursos en el servidor que en el estado local, actualizar
                           if (serverResources.length > resources.length) {
-                            console.log("✅ Found new resources on server, updating local state");
+                            console.log("Found new resources on server, updating local state");
                             setResources(serverResources);
                             toast.success("Immagine caricata con successo! 🔥");
                             setUploadingFiles([]);
                             router.refresh();
                           } else {
-                            console.log("⚠️ No new resources found on server yet");
+                            console.log("No new resources found on server yet");
                           }
                         }
                       } catch (error) {
-                        console.error("❌ Error polling server for resources:", error);
+                        console.error("Error polling server for resources:", error);
                       }
                     }, 2000); // Esperar 2 segundos para que el servidor procese
                   }

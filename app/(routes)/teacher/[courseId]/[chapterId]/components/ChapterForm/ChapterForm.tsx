@@ -55,18 +55,18 @@ export function ChapterForm(props: ChapterFormProps) {
   
   // Verificar si el campo resources existe
   const chapterKeys = Object.keys(chapter);
-  console.log("📦 ChapterForm - Chapter keys:", chapterKeys);
-  console.log("📦 ChapterForm - Has 'resources' key:", 'resources' in chapter);
-  console.log("📦 ChapterForm - Raw chapter object (full):", JSON.stringify(chapter, null, 2));
-  console.log("📦 ChapterForm - Raw resources from Prisma:", chapterWithResources.resources);
-  console.log("📦 ChapterForm - Resources type:", typeof chapterWithResources.resources);
-  console.log("📦 ChapterForm - Resources isArray:", Array.isArray(chapterWithResources.resources));
-  console.log("📦 ChapterForm - Resources stringified:", JSON.stringify(chapterWithResources.resources));
-  console.log("📦 ChapterForm - Resources undefined check:", chapterWithResources.resources === undefined);
-  console.log("📦 ChapterForm - Resources null check:", chapterWithResources.resources === null);
+  console.log("ChapterForm - Chapter keys:", chapterKeys);
+  console.log("ChapterForm - Has 'resources' key:", 'resources' in chapter);
+  console.log("ChapterForm - Raw chapter object (full):", JSON.stringify(chapter, null, 2));
+  console.log("ChapterForm - Raw resources from Prisma:", chapterWithResources.resources);
+  console.log("ChapterForm - Resources type:", typeof chapterWithResources.resources);
+  console.log("ChapterForm - Resources isArray:", Array.isArray(chapterWithResources.resources));
+  console.log("ChapterForm - Resources stringified:", JSON.stringify(chapterWithResources.resources));
+  console.log("ChapterForm - Resources undefined check:", chapterWithResources.resources === undefined);
+  console.log("ChapterForm - Resources null check:", chapterWithResources.resources === null);
   
   const parsedResources = parseChapterResources(chapterWithResources.resources);
-  console.log("✅ ChapterForm - Parsed resources:", parsedResources);
+  console.log("ChapterForm - Parsed resources:", parsedResources);
 
   const onPublish = async (state: boolean) => {
     try {
