@@ -112,10 +112,28 @@ export const ourFileRouter = {
           let existingResources: Array<{ url: string; name: string; type?: string; size?: number }> = [];
           if (chapter.resources) {
             if (Array.isArray(chapter.resources)) {
-              existingResources = chapter.resources;
+              // Validar que cada elemento tenga la estructura correcta
+              existingResources = chapter.resources.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
+                return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
+              }).map(r => ({
+                url: (r as { url: string }).url,
+                name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
+                type: (r as { type?: string }).type,
+                size: (r as { size?: number }).size,
+              }));
             } else if (typeof chapter.resources === 'string') {
               try {
-                existingResources = JSON.parse(chapter.resources);
+                const parsed = JSON.parse(chapter.resources);
+                if (Array.isArray(parsed)) {
+                  existingResources = parsed.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
+                    return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
+                  }).map(r => ({
+                    url: (r as { url: string }).url,
+                    name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
+                    type: (r as { type?: string }).type,
+                    size: (r as { size?: number }).size,
+                  }));
+                }
               } catch (e) {
                 console.error("Error parsing existing resources:", e);
               }
@@ -228,10 +246,28 @@ export const ourFileRouter = {
           let existingResources: Array<{ url: string; name: string; type?: string; size?: number }> = [];
           if (chapter.resources) {
             if (Array.isArray(chapter.resources)) {
-              existingResources = chapter.resources;
+              // Validar que cada elemento tenga la estructura correcta
+              existingResources = chapter.resources.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
+                return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
+              }).map(r => ({
+                url: (r as { url: string }).url,
+                name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
+                type: (r as { type?: string }).type,
+                size: (r as { size?: number }).size,
+              }));
             } else if (typeof chapter.resources === 'string') {
               try {
-                existingResources = JSON.parse(chapter.resources);
+                const parsed = JSON.parse(chapter.resources);
+                if (Array.isArray(parsed)) {
+                  existingResources = parsed.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
+                    return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
+                  }).map(r => ({
+                    url: (r as { url: string }).url,
+                    name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
+                    type: (r as { type?: string }).type,
+                    size: (r as { size?: number }).size,
+                  }));
+                }
               } catch (e) {
                 console.error("Error parsing existing resources:", e);
               }

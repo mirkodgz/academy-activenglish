@@ -8,7 +8,7 @@ export function CourseContent(props: CourseContentProps) {
       <h2 className="text-3xl font-semibold mb-4 pb-4">Contenuto del corso</h2>
 
       <div className="space-y-6">
-        {chapters.map((chapter, index) => (
+        {chapters.map((chapter) => (
           <div
             key={chapter.id}
             className="flex items-start space-x-4 border border-border p-2 rounded-lg 
