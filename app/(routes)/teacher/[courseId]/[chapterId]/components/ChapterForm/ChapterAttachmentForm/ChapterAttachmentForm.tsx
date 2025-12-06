@@ -15,6 +15,7 @@ import { TitleBlock } from "../../../../components";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
+import { useRef } from "react";
 import { UploadButton } from "@/utils/uploadthing";
 
 // Función helper para parsear recursos desde Prisma JSON
@@ -56,9 +57,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
   const [videoUrlInput, setVideoUrlInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  // Estado para rastrear archivos en proceso de carga (usado internamente por callbacks de UploadThing)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [uploadingFiles, setUploadingFiles] = useState<Array<{ name: string; progress: number }>>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
 
@@ -159,6 +160,70 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
       setVideoUrlInput("");
     } catch {
       toast.error("Ops, qualcosa è andato storto 😭");
+    }
+  };
+
+  // Función para manejar la carga de archivos con Cloudinary (similar a CourseImage)
+  const handleFileUpload = async (file: File, type: "document" | "image") => {
+    // Validar tamaño según el tipo
+    const maxSize = type === "image" ? 4 * 1024 * 1024 : 16 * 1024 * 1024; // 4MB para imágenes, 16MB para documentos
+    if (file.size > maxSize) {
+      toast.error(`Il file deve essere inferiore a ${maxSize / (1024 * 1024)}MB`);
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", `activenglish/chapters/${chapterId}`);
+
+      const response = await axios.post("/api/cloudinary/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data?.url) {
+        const newResource = {
+          url: response.data.url,
+          name: response.data.name || file.name,
+          type: type === "image" ? "image" : getFileType(response.data.url),
+          size: response.data.size || file.size,
+        };
+
+        // Agregar nuevo recurso al array existente
+        const updatedResources = [...resources, newResource];
+        
+        // Guardar en la BD
+        await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+          resources: updatedResources,
+        });
+
+        // Actualizar estado local
+        setResources(updatedResources);
+        setIsEditing(false);
+        router.refresh();
+        toast.success(`${type === "image" ? "Immagine" : "Documento"} caricat${type === "image" ? "a" : "o"} con successo!`);
+      } else {
+        throw new Error("URL non ricevuta");
+      }
+    } catch (error: unknown) {
+      console.error("Error uploading file:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        : undefined;
+      toast.error(errorMessage || `Errore durante il caricamento del ${type === "image" ? "immagine" : "documento"}`);
+    } finally {
+      setIsUploading(false);
+      // Resetear el input
+      if (type === "document" && documentInputRef.current) {
+        documentInputRef.current.value = "";
+      }
+      if (type === "image" && imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
     }
   };
 
@@ -322,9 +387,10 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   <Label>Opzione 2: Carica file video</Label>
                   <UploadButton
                     endpoint="chapterVideo"
-                    onClientUploadComplete={(res) => {
-                      if (res && res[0]?.url) {
-                        onSubmit(res[0].url, "video");
+                    onClientUploadComplete={(res: unknown) => {
+                      if (res && Array.isArray(res) && res[0] && typeof res[0] === 'object' && 'url' in res[0]) {
+                        const url = (res[0] as { url: string }).url;
+                        onSubmit(url, "video");
                         toast.success("Video caricato con successo! 🔥");
                       }
                     }}
@@ -354,49 +420,45 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
         <TabsContent value="document" className="mt-4">
           <div className="space-y-4">
-            {/* Debug info - remover en producción */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="p-2 bg-muted rounded text-xs">
-                <p>Total resources: {resources.length}</p>
-                <p>Document resources: {documentResources.length}</p>
-                <p>Resources: {JSON.stringify(resources, null, 2)}</p>
-              </div>
-            )}
-            
-            {/* Lista de documentos cargados en grid */}
+            {/* Lista de documentos cargados en grid compacto */}
             {documentResources.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
                 {documentResources.map((resource, index) => {
                   const resourceIndex = resources.findIndex(r => r.url === resource.url);
                   const fileIcon = getFileIcon(resource.type || "");
                   return (
                     <div
                       key={`doc-${index}-${resource.url}`}
-                      className="relative group border rounded-lg overflow-hidden bg-card hover:shadow-md transition-all duration-200"
+                      className="relative group border rounded-md overflow-hidden bg-card hover:shadow-md transition-all duration-200"
                     >
-                      <div className="aspect-square flex flex-col items-center justify-center p-4 bg-muted/50">
-                        <div className="w-12 h-12 flex items-center justify-center mb-2">
+                      <div className="flex flex-col items-center justify-center p-2 bg-muted/50 min-h-[80px]">
+                        <div className="w-8 h-8 flex items-center justify-center mb-1">
                           {fileIcon}
                         </div>
-                        <p className="text-xs font-medium text-center line-clamp-2 px-1" title={resource.name}>
+                        <p className="text-[10px] font-medium text-center line-clamp-2 px-1" title={resource.name}>
                           {resource.name || "Sin nombre"}
                         </p>
                       </div>
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 bg-background/90 hover:bg-background shadow-sm"
+                          className="h-6 w-6 p-0 bg-background/90 hover:bg-background shadow-sm"
                           asChild
                         >
-                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                            <Download className="w-3.5 h-3.5" />
+                          <a 
+                            href={resource.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            download={resource.name || undefined}
+                          >
+                            <Download className="w-3 h-3" />
                           </a>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
+                          className="h-6 w-6 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
                           onClick={async () => {
                             const updatedResources = resources.filter((_, i) => i !== resourceIndex);
                             setResources(updatedResources);
@@ -412,236 +474,51 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                             }
                           }}
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="p-4 border rounded-lg bg-muted/20 mb-4">
-                <p className="text-sm text-muted-foreground">Nessun documento caricato</p>
-                <p className="text-xs text-muted-foreground mt-1">Total risorse nel database: {resources.length}</p>
-                {resources.length > 0 && (
-                  <div className="mt-2 text-xs">
-                    <p className="font-semibold">Risorse trovate (ma non mostrate come documenti):</p>
-                    <ul className="list-disc list-inside mt-1">
-                      {resources.map((r, i) => (
-                        <li key={i}>{r.name || r.url} (tipo: {r.type || "sin tipo"})</li>
-                      ))}
-                    </ul>
+            ) : null}
+
+            {/* Área de carga con Cloudinary (similar a CourseImage) */}
+            <div className="border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20 relative">
+              <input
+                ref={documentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file, "document");
+                  }
+                }}
+                className="hidden"
+                id="chapter-document-upload"
+                disabled={isUploading}
+                multiple
+              />
+              <label
+                htmlFor="chapter-document-upload"
+                className="flex flex-col items-center justify-center cursor-pointer min-h-[120px]"
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-primary" />
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {documentResources.length > 0 ? "Clicca per aggiungere più documenti" : "Clicca per selezionare i documenti"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Área de carga con diseño de la foto 2 */}
-            <div className="border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
-              <UploadButton
-                endpoint="chapterDocument"
-                input={{ courseId, chapterId }}
-                onClientUploadComplete={async (res) => {
-                  console.log("=== ✅ UPLOAD COMPLETE CALLBACK EJECUTADO (DOCUMENTS) ===");
-                  console.log("Full response:", JSON.stringify(res, null, 2));
-                  console.log("Response type:", typeof res);
-                  console.log("Is array:", Array.isArray(res));
-                  
-                  setUploadingFiles([]);
-                  
-                  // Si el callback se ejecuta, significa que el archivo se subió correctamente
-                  // Pero necesitamos verificar que res no sea null/undefined
-                  if (!res) {
-                    console.error("❌ Response is null or undefined in onClientUploadComplete");
-                    toast.error("Errore: risposta vuota da UploadThing");
-                    return;
-                  }
-                  
-                  try {
-                    if (!res) {
-                      console.error("Response is null or undefined");
-                      toast.error("Errore: risposta vuota da UploadThing");
-                      return;
-                    }
-
-                    const filesArray = Array.isArray(res) ? res : [res];
-                    console.log("Files array length:", filesArray.length);
-                    console.log("Files array:", filesArray);
-                    
-                    if (filesArray.length === 0) {
-                      console.error("Empty files array");
-                      toast.error("Errore: nessun file nella risposta");
-                      return;
-                    }
-
-                    // Extraer URLs de los archivos subidos
-                    // UploadThing puede devolver los datos en diferentes formatos
-                    const newResources = filesArray
-                      .map((file: unknown, index: number) => {
-                        console.log(`Processing file ${index}:`, file);
-                        console.log(`File ${index} type:`, typeof file);
-                        console.log(`File ${index} keys:`, file && typeof file === 'object' ? Object.keys(file) : 'N/A');
-                        
-                        // Si es string, es una URL directa
-                        if (typeof file === 'string') {
-                          console.log(`File ${index} is string URL:`, file);
-                          return {
-                            url: file,
-                            name: decodeURIComponent(file.split('/').pop() || '') || `Documento_${Date.now()}`,
-                            type: getFileType(file),
-                            size: 0,
-                          };
-                        }
-                        
-                        // Si es objeto, buscar url en diferentes lugares
-                        if (file && typeof file === 'object') {
-                          const fileObj = file as Record<string, unknown>;
-                          
-                          // UploadThing puede devolver: file.url, file.serverData.url, o directamente el objeto retornado desde onUploadComplete
-                          const fileUrl = 
-                            (fileObj.url as string) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.url as string) ||
-                            null;
-                          
-                          const fileName = 
-                            (fileObj.name as string) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.name as string) ||
-                            (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : null) ||
-                            `Documento_${Date.now()}`;
-                          
-                          const fileSize = 
-                            (fileObj.size as number) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.size as number) ||
-                            0;
-                          
-                          console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize });
-                          
-                          if (!fileUrl) {
-                            console.error(`File ${index} has no URL. Full object:`, fileObj);
-                            return null;
-                          }
-                          
-                          return {
-                            url: fileUrl,
-                            name: fileName,
-                            type: getFileType(fileUrl),
-                            size: fileSize,
-                          };
-                        }
-                        
-                        console.error(`File ${index} is not a valid format:`, file);
-                        return null;
-                      })
-                      .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
-                        const isValid = resource !== null && resource.url !== undefined;
-                        if (!isValid) {
-                          console.error("Filtered out invalid resource:", resource);
-                        }
-                        return isValid;
-                      });
-
-                    console.log("Valid new resources:", newResources);
-                    console.log("Current resources before update:", resources);
-
-                    if (newResources.length === 0) {
-                      console.error("No valid resources after processing");
-                      toast.error("Errore: nessun file valido processato");
-                      return;
-                    }
-
-                    // Agregar nuevos recursos al array existente
-                    const updatedResources = [...resources, ...newResources];
-                    console.log("Updated resources (old + new):", updatedResources);
-                    
-                    // Guardar en la BD (EXACTAMENTE como onChangeImage en CourseImage)
-                    try {
-                      await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
-                        resources: updatedResources,
-                      });
-                      
-                      // Actualizar estado local DESPUÉS de guardar (como CourseImage hace con setImage)
-                      setResources(updatedResources);
-                      setIsEditing(false);
-                      router.refresh();
-                      toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}!`);
-                    } catch (dbError) {
-                      console.error("Error saving to database:", dbError);
-                      toast.error("Errore durante il salvataggio");
-                      throw dbError;
-                    }
-                  } catch (error: unknown) {
-                    console.error("Error in onClientUploadComplete:", error);
-                    const errorMessage = error && typeof error === 'object' && 'response' in error 
-                      ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
-                      : undefined;
-                    toast.error(errorMessage || "Errore durante il caricamento");
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  console.error("Upload error:", error);
-                  toast.error(`Errore durante il caricamento: ${error.message}`);
-                  setUploadingFiles([]);
-                }}
-                onUploadBegin={(name) => {
-                  console.log("Upload begin:", name);
-                  setUploadingFiles(prev => [...prev, { name, progress: 0 }]);
-                }}
-                onUploadProgress={async (progress) => {
-                  console.log("Upload progress (documents):", progress);
-                  setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
-                  
-                  // Fallback: Si el progreso llega a 100% y onClientUploadComplete no se ejecutó
-                  if (progress === 100) {
-                    console.log("Upload progress reached 100%, waiting for callback...");
-                    
-                    // Esperar 2 segundos para que el callback se ejecute
-                    setTimeout(async () => {
-                      try {
-                        // Primero intentar obtener recursos del servidor
-                        console.log("Polling server for uploaded files (fallback)...");
-                        const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
-                        
-                        if (response.data?.resources) {
-                          const serverResources = parseResources(response.data.resources);
-                          console.log("Resources from server (polling):", serverResources);
-                          console.log("Current local resources:", resources);
-                          
-                          // Si hay más recursos en el servidor que en el estado local, actualizar
-                          if (serverResources.length > resources.length) {
-                            console.log("Found new resources on server, updating local state");
-                            setResources(serverResources);
-                            setUploadingFiles([]);
-                            toast.success("File caricato con successo!");
-                            router.refresh();
-                            return;
-                          }
-                        }
-                        
-                        // Si no hay recursos nuevos en el servidor, el callback del servidor no se ejecutó
-                        // En este caso, necesitamos obtener la URL del archivo desde UploadThing
-                        // O hacer que el usuario haga clic en "Salva" para guardar manualmente
-                        console.log("⚠️ Server callback did not execute. File uploaded but not saved to DB.");
-                        console.log("💡 User should click 'Salva' button to save the file, or we need to get the file URL from UploadThing");
-                        
-                        // Mostrar mensaje al usuario
-                        toast.info("File caricato su UploadThing. Clicca 'Salva' per salvare nella base di dati.");
-                        setUploadingFiles([]);
-                      } catch (error) {
-                        console.error("Error polling server for resources:", error);
-                        setUploadingFiles([]);
-                      }
-                    }, 2000);
-                  }
-                }}
-                className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-0">
-                <Upload className="w-8 h-8 text-primary" />
-                <p className="text-sm text-muted-foreground font-medium">
-                  {documentResources.length > 0 ? "Clicca per aggiungere più documenti" : "Clicca per selezionare i documenti"}
-                </p>
-                <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
-              </div>
+              </label>
             </div>
             <p className="text-xs text-muted-foreground text-center">
               Puoi caricare fino a 10 documenti alla volta (Max 16MB ciascuno)
@@ -651,15 +528,15 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
         <TabsContent value="image" className="mt-4">
           <div className="space-y-4">
-            {/* Lista de imágenes cargadas en grid */}
+            {/* Lista de imágenes cargadas en grid compacto */}
             {imageResources.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
                 {imageResources.map((resource, index) => {
                   const resourceIndex = resources.findIndex(r => r.url === resource.url);
                   return (
                     <div
                       key={index}
-                      className="relative group border rounded-lg overflow-hidden bg-card hover:shadow-md transition-all duration-200"
+                      className="relative group border rounded-md overflow-hidden bg-card hover:shadow-md transition-all duration-200"
                     >
                       <div className="aspect-square relative bg-muted/50">
                         <Image
@@ -670,24 +547,29 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                       </div>
-                      <div className="p-2 bg-card">
-                        <p className="text-xs font-medium truncate">{resource.name}</p>
+                      <div className="p-1 bg-card">
+                        <p className="text-[10px] font-medium truncate">{resource.name}</p>
                       </div>
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 bg-background/90 hover:bg-background shadow-sm"
+                          className="h-6 w-6 p-0 bg-background/90 hover:bg-background shadow-sm"
                           asChild
                         >
-                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                            <Download className="w-3.5 h-3.5" />
+                          <a 
+                            href={resource.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            download={resource.name || undefined}
+                          >
+                            <Download className="w-3 h-3" />
                           </a>
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
+                          className="h-6 w-6 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
                           onClick={async () => {
                             const updatedResources = resources.filter((_, i) => i !== resourceIndex);
                             setResources(updatedResources);
@@ -703,7 +585,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                             }
                           }}
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
@@ -712,200 +594,42 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
               </div>
             )}
 
-            {/* Área de carga con diseño de la foto 2 */}
-            <div className="relative border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
-              <UploadButton
-                endpoint="chapterImages"
-                input={{ courseId, chapterId }}
-                onClientUploadComplete={async (res) => {
-                  console.log("=== UPLOAD COMPLETE (IMAGES) ===");
-                  console.log("Full response:", JSON.stringify(res, null, 2));
-                  console.log("Response type:", typeof res);
-                  console.log("Is array:", Array.isArray(res));
-                  
-                  setUploadingFiles([]);
-                  
-                  try {
-                    if (!res) {
-                      console.error("Response is null or undefined");
-                      toast.error("Errore: risposta vuota da UploadThing");
-                      return;
-                    }
-
-                    const filesArray = Array.isArray(res) ? res : [res];
-                    console.log("Files array length:", filesArray.length);
-                    console.log("Files array:", filesArray);
-                    
-                    if (filesArray.length === 0) {
-                      console.error("Empty files array");
-                      toast.error("Errore: nessun file nella risposta");
-                      return;
-                    }
-
-                    // Extraer URLs de los archivos subidos
-                    const newResources = filesArray
-                      .map((file: unknown, index: number) => {
-                        console.log(`Processing file ${index}:`, file);
-                        console.log(`File ${index} type:`, typeof file);
-                        console.log(`File ${index} keys:`, file && typeof file === 'object' ? Object.keys(file) : 'N/A');
-                        
-                        // Si es string, es una URL directa
-                        if (typeof file === 'string') {
-                          console.log(`File ${index} is string URL:`, file);
-                          return {
-                            url: file,
-                            name: decodeURIComponent(file.split('/').pop() || '') || `Immagine_${Date.now()}`,
-                            type: "image",
-                            size: 0,
-                          };
-                        }
-                        
-                        // Si es objeto, buscar url en diferentes lugares
-                        if (file && typeof file === 'object') {
-                          const fileObj = file as Record<string, unknown>;
-                          
-                          const fileUrl = 
-                            (fileObj.url as string) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.url as string) ||
-                            null;
-                          
-                          const fileName = 
-                            (fileObj.name as string) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.name as string) ||
-                            (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : null) ||
-                            `Immagine_${Date.now()}`;
-                          
-                          const fileSize = 
-                            (fileObj.size as number) || 
-                            ((fileObj.serverData as Record<string, unknown>)?.size as number) ||
-                            0;
-                          
-                          console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize });
-                          
-                          if (!fileUrl) {
-                            console.error(`File ${index} has no URL. Full object:`, fileObj);
-                            return null;
-                          }
-                          
-                          return {
-                            url: fileUrl,
-                            name: fileName,
-                            type: "image",
-                            size: fileSize,
-                          };
-                        }
-                        
-                        console.error(`File ${index} is not a valid format:`, file);
-                        return null;
-                      })
-                      .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
-                        const isValid = resource !== null && resource.url !== undefined;
-                        if (!isValid) {
-                          console.error("Filtered out invalid resource:", resource);
-                        }
-                        return isValid;
-                      });
-
-                    console.log("Valid new resources:", newResources);
-                    console.log("Current resources before update:", resources);
-
-                    if (newResources.length === 0) {
-                      console.error("No valid resources after processing");
-                      toast.error("Errore: nessun file valido processato");
-                      return;
-                    }
-
-                    // Agregar nuevos recursos al array existente
-                    const updatedResources = [...resources, ...newResources];
-                    console.log("Updated resources (old + new):", updatedResources);
-                    
-                    // Guardar en la BD (EXACTAMENTE como onChangeImage en CourseImage)
-                    try {
-                      await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
-                        resources: updatedResources,
-                      });
-                      
-                      // Actualizar estado local DESPUÉS de guardar (como CourseImage hace con setImage)
-                      setResources(updatedResources);
-                      setIsEditing(false);
-                      router.refresh();
-                      toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}!`);
-                    } catch (dbError) {
-                      console.error("Error saving to database:", dbError);
-                      toast.error("Errore durante il salvataggio");
-                      throw dbError;
-                    }
-                  } catch (error: unknown) {
-                    console.error("Error in onClientUploadComplete:", error);
-                    const errorMessage = error && typeof error === 'object' && 'response' in error 
-                      ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
-                      : undefined;
-                    toast.error(errorMessage || "Errore durante il caricamento");
+            {/* Área de carga con Cloudinary (similar a CourseImage) */}
+            <div className="border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20 relative">
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file, "image");
                   }
                 }}
-                onUploadError={(error: Error) => {
-                  console.error("Upload error:", error);
-                  toast.error(`Errore durante il caricamento: ${error.message}`);
-                  setUploadingFiles([]);
-                }}
-                onUploadBegin={(name) => {
-                  console.log("Upload begin:", name);
-                  setUploadingFiles(prev => [...prev, { name, progress: 0 }]);
-                }}
-                onUploadProgress={async (progress) => {
-                  console.log("Upload progress (images):", progress);
-                  setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
-                  
-                  // Fallback: Si el progreso llega a 100% y onClientUploadComplete no se ejecutó
-                  if (progress === 100) {
-                    console.log("Upload progress reached 100%, waiting for callback...");
-                    
-                    // Esperar 2 segundos para que el callback se ejecute
-                    setTimeout(async () => {
-                      try {
-                        // Primero intentar obtener recursos del servidor
-                        console.log("Polling server for uploaded files (fallback)...");
-                        const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
-                        
-                        if (response.data?.resources) {
-                          const serverResources = parseResources(response.data.resources);
-                          console.log("Resources from server (polling):", serverResources);
-                          console.log("Current local resources:", resources);
-                          
-                          // Si hay más recursos en el servidor que en el estado local, actualizar
-                          if (serverResources.length > resources.length) {
-                            console.log("Found new resources on server, updating local state");
-                            setResources(serverResources);
-                            setUploadingFiles([]);
-                            toast.success("Immagine caricata con successo!");
-                            router.refresh();
-                            return;
-                          }
-                        }
-                        
-                        // Si no hay recursos nuevos en el servidor, el callback del servidor no se ejecutó
-                        console.log("⚠️ Server callback did not execute. File uploaded but not saved to DB.");
-                        console.log("💡 User should click 'Salva' button to save the file, or we need to get the file URL from UploadThing");
-                        
-                        // Mostrar mensaje al usuario
-                        toast.info("File caricato su UploadThing. Clicca 'Salva' per salvare nella base di dati.");
-                        setUploadingFiles([]);
-                      } catch (error) {
-                        console.error("Error polling server for resources:", error);
-                        setUploadingFiles([]);
-                      }
-                    }, 2000);
-                  }
-                }}
-                className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
+                className="hidden"
+                id="chapter-image-upload"
+                disabled={isUploading}
+                multiple
               />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-0">
-                <Upload className="w-8 h-8 text-primary" />
-                <p className="text-sm text-muted-foreground font-medium">
-                  {imageResources.length > 0 ? "Clicca per aggiungere più immagini" : "Clicca per selezionare un&apos;immagine"}
-                </p>
-                <p className="text-xs text-muted-foreground">Max 4MB</p>
-              </div>
+              <label
+                htmlFor="chapter-image-upload"
+                className="flex flex-col items-center justify-center cursor-pointer min-h-[120px]"
+              >
+                {isUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-primary" />
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {imageResources.length > 0 ? "Clicca per aggiungere più immagini" : "Clicca per selezionare un&apos;immagine"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Max 4MB</p>
+                  </div>
+                )}
+              </label>
             </div>
             <p className="text-xs text-muted-foreground text-center">
               Puoi caricare fino a 10 immagini alla volta (Max 4MB ciascuna)
