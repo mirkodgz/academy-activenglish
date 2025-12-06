@@ -79,19 +79,13 @@ export async function PATCH(
       return new NextResponse("Course not found", { status: 404 });
     }
 
-    console.log("[COURSE_CHAPTER_UPDATE] Updating chapter with values:", JSON.stringify(values, null, 2));
-    console.log("[COURSE_CHAPTER_UPDATE] Resources in values:", values.resources);
-    console.log("[COURSE_CHAPTER_UPDATE] Resources type:", typeof values.resources);
-    console.log("[COURSE_CHAPTER_UPDATE] Resources isArray:", Array.isArray(values.resources));
-
-    // Preparar los datos para Prisma
-    // Asegurarse de que resources se envíe como JSON válido
+    // Preparar los datos para Prisma (similar a cómo se hace en /api/course/[courseId])
     const updateData: Record<string, unknown> = { ...values };
+    
+    // Si resources está presente, asegurarse de que sea un array válido
     if (values.resources !== undefined) {
-      // Si resources es un array, Prisma lo manejará automáticamente como JSON
-      // Pero asegurémonos de que esté en el formato correcto
-      updateData.resources = values.resources;
-      console.log("[COURSE_CHAPTER_UPDATE] Setting resources in updateData:", updateData.resources);
+      // Prisma maneja arrays automáticamente como JSON
+      updateData.resources = Array.isArray(values.resources) ? values.resources : [];
     }
 
     const chapter = await prisma.chapter.update({
@@ -116,11 +110,6 @@ export async function PATCH(
         updatedAt: true,
       },
     });
-
-    console.log("[COURSE_CHAPTER_UPDATE] Chapter updated successfully:", JSON.stringify(chapter, null, 2));
-    console.log("[COURSE_CHAPTER_UPDATE] Resources after update:", chapter.resources);
-    console.log("[COURSE_CHAPTER_UPDATE] Resources type after update:", typeof chapter.resources);
-    console.log("[COURSE_CHAPTER_UPDATE] Resources isArray after update:", Array.isArray(chapter.resources));
 
     return NextResponse.json(chapter);
   } catch (error) {

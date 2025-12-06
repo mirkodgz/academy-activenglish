@@ -4,17 +4,6 @@ import { FileText, Image as ImageIcon, Video, Link as LinkIcon, Upload, Download
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-// Tipo para la respuesta de UploadThing
-interface UploadThingFile {
-  url: string;
-  name?: string;
-  size?: number;
-  serverData?: {
-    url?: string;
-    name?: string;
-    size?: number;
-  };
-}
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,15 +48,16 @@ function parseResources(resources: unknown): Array<{ url: string; name: string; 
 export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const { chapterId, courseId, videoUrl, documentUrl, imageUrl, resources: initialResources } = props;
   
-  // Parsear recursos iniciales correctamente
+  // Parsear recursos iniciales correctamente (similar a cómo CourseImage maneja imageCourse)
   const parsedInitialResources = parseResources(initialResources);
-  console.log("Initial resources received:", initialResources);
-  console.log("Parsed initial resources:", parsedInitialResources);
   
-  const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(parsedInitialResources);
+  // Estado local para los recursos (similar a cómo CourseImage usa useState para image)
+  const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(parsedInitialResources || []);
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
   const [videoUrlInput, setVideoUrlInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  // Estado para rastrear archivos en proceso de carga (usado internamente por callbacks de UploadThing)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadingFiles, setUploadingFiles] = useState<Array<{ name: string; progress: number }>>([]);
 
   const router = useRouter();
@@ -78,9 +68,6 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
     return type === "pdf" || type === "word" || type === "excel" || type === "file" || (!type && r.url); // Incluir recursos sin tipo si tienen URL
   });
   const imageResources = resources.filter(r => r.type?.toLowerCase() === "image");
-  
-  console.log("Document resources:", documentResources);
-  console.log("Image resources:", imageResources);
 
   // Determinar qué tipo de archivo está actualmente configurado
   useEffect(() => {
@@ -98,54 +85,14 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
     }
   }, [videoUrl, documentUrl, imageUrl, documentResources.length, imageResources.length]);
 
-  // Actualizar recursos cuando cambien desde el servidor
+  // Actualizar recursos cuando cambien desde el servidor (similar a cómo CourseImage actualiza cuando cambia imageCourse)
   useEffect(() => {
     const parsedResources = parseResources(initialResources);
-    console.log("Resources updated from props (useEffect):", {
-      initialResources,
-      parsedResources,
-      resourcesLength: parsedResources.length
-    });
-    setResources(parsedResources);
+    if (parsedResources && parsedResources.length > 0) {
+      setResources(parsedResources);
+    }
   }, [initialResources]);
 
-  // Fallback: Si onClientUploadComplete no se ejecuta, intentar guardar manualmente cuando el progreso llegue a 100
-  useEffect(() => {
-    const completedUploads = uploadingFiles.filter(f => f.progress === 100);
-    if (completedUploads.length > 0) {
-      console.log("Upload completed but onClientUploadComplete may not have fired.");
-      console.log("Attempting to reload data from server...");
-      
-      // Esperar un poco para que el servidor procese el archivo
-      const timeout = setTimeout(async () => {
-        try {
-          // Recargar los datos del servidor
-          router.refresh();
-          
-          // También intentar obtener los recursos actuales directamente desde la API
-          // Esto es un fallback adicional en caso de que router.refresh() no funcione
-          const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
-          if (response.data?.resources) {
-            const serverResources = parseResources(response.data.resources);
-            console.log("Resources from server (fallback):", serverResources);
-            
-            // Si hay más recursos en el servidor que en el estado local, actualizar
-            if (serverResources.length > resources.length) {
-              console.log("Found new resources on server, updating local state");
-              setResources(serverResources);
-              toast.success("File caricato con successo! 🔥");
-            }
-          }
-        } catch (error) {
-          console.error("Error in fallback resource fetch:", error);
-        } finally {
-          setUploadingFiles([]);
-        }
-      }, 3000); // Aumentar el tiempo de espera a 3 segundos para dar más tiempo al servidor
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [uploadingFiles, router, courseId, chapterId, resources.length]);
 
   const onSubmit = async (url: string, type: AttachmentType) => {
     try {
@@ -224,6 +171,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
         videoUrl?: string | null;
         documentUrl?: string | null;
         imageUrl?: string | null;
+        resources?: Array<{ url: string; name: string; type?: string; size?: number }>;
       } = {};
 
       // Obtener los valores del formulario de título si está disponible
@@ -234,6 +182,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
         updateData.description = titleValues.description;
         updateData.isFree = titleValues.isFree;
       }
+
+      // SIEMPRE guardar los recursos actuales del estado local
+      updateData.resources = resources;
 
       // Si se seleccionó "Nessuno", limpiar todo
       if (activeTab === null) {
@@ -247,7 +198,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
         updateData.imageUrl = null;
       }
 
-      // Guardar todo (título y contenido)
+      // Guardar todo (título, contenido y recursos)
       await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, updateData);
       toast("Modulo salvato 🔥");
       router.refresh();
@@ -490,29 +441,23 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
               <UploadButton
                 endpoint="chapterDocument"
                 input={{ courseId, chapterId }}
-                onClientUploadComplete={(res) => {
-                  console.log("=== UPLOAD COMPLETE (CLIENT) ===");
-                  console.log("CALLBACK EXECUTED - res:", res);
-                  // Limpiar archivos en progreso cuando el callback se ejecuta
-                  setUploadingFiles([]);
+                onClientUploadComplete={async (res) => {
+                  console.log("=== UPLOAD COMPLETE (DOCUMENTS) ===");
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
-                  console.log("Response keys:", res ? Object.keys(res) : "null");
-                  console.log("Response value:", res);
+                  
+                  setUploadingFiles([]);
                   
                   try {
                     if (!res) {
-                      console.error("Response is null or undefined - UploadThing callback may not have executed");
-                      console.log("This is normal in development. The file is uploaded but callback may not fire.");
-                      console.log("Checking UploadThing dashboard to get file URL...");
-                      
-                      // Mostrar mensaje al usuario
-                      toast.info("File uploaded to UploadThing. Please check the dashboard to get the URL.");
+                      console.error("Response is null or undefined");
+                      toast.error("Errore: risposta vuota da UploadThing");
                       return;
                     }
 
                     const filesArray = Array.isArray(res) ? res : [res];
+                    console.log("Files array length:", filesArray.length);
                     console.log("Files array:", filesArray);
                     
                     if (filesArray.length === 0) {
@@ -521,54 +466,63 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       return;
                     }
 
+                    // Extraer URLs de los archivos subidos
+                    // UploadThing puede devolver los datos en diferentes formatos
                     const newResources = filesArray
-                      .map((file: UploadThingFile | { url?: string; name?: string; size?: number; serverData?: { url?: string; name?: string; size?: number } } | string, index: number) => {
+                      .map((file: unknown, index: number) => {
                         console.log(`Processing file ${index}:`, file);
+                        console.log(`File ${index} type:`, typeof file);
+                        console.log(`File ${index} keys:`, file && typeof file === 'object' ? Object.keys(file) : 'N/A');
                         
-                        // Type guard para verificar si es string
+                        // Si es string, es una URL directa
                         if (typeof file === 'string') {
-                          const fileUrl = file;
-                          const fileName = decodeURIComponent(fileUrl.split('/').pop() || '') || `Documento_${Date.now()}`;
+                          console.log(`File ${index} is string URL:`, file);
                           return {
-                            url: fileUrl,
-                            name: fileName,
-                            type: getFileType(fileUrl),
+                            url: file,
+                            name: decodeURIComponent(file.split('/').pop() || '') || `Documento_${Date.now()}`,
+                            type: getFileType(file),
                             size: 0,
                           };
                         }
                         
-                        // Type guard para verificar si tiene las propiedades esperadas
-                        const fileObj = file as UploadThingFile | { url?: string; name?: string; size?: number; serverData?: { url?: string; name?: string; size?: number } };
-                        
-                        console.log(`File ${index} structure:`, {
-                          hasUrl: !!(fileObj.url || (fileObj as { serverData?: { url?: string } }).serverData?.url),
-                          hasName: !!fileObj.name,
-                          hasSize: !!fileObj.size,
-                          hasServerData: !!(fileObj as { serverData?: unknown }).serverData,
-                          fileKeys: Object.keys(fileObj || {}),
-                        });
-                        
-                        // UploadThing puede devolver los datos de diferentes formas:
-                        // 1. file.url, file.name, file.size directamente
-                        // 2. file.serverData.url, file.serverData.name, file.serverData.size
-                        const serverData = (fileObj as { serverData?: { url?: string; name?: string; size?: number } }).serverData || {};
-                        const fileUrl = fileObj.url || serverData.url || null;
-                        const fileName = fileObj.name || serverData.name || (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : undefined) || `Documento_${Date.now()}`;
-                        const fileSize = fileObj.size || serverData.size || 0;
-                        
-                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData, originalFile: file });
-                        
-                        if (!fileUrl) {
-                          console.error(`File ${index} has no URL:`, file);
-                          return null;
+                        // Si es objeto, buscar url en diferentes lugares
+                        if (file && typeof file === 'object') {
+                          const fileObj = file as Record<string, unknown>;
+                          
+                          // UploadThing puede devolver: file.url, file.serverData.url, o directamente el objeto retornado desde onUploadComplete
+                          const fileUrl = 
+                            (fileObj.url as string) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.url as string) ||
+                            null;
+                          
+                          const fileName = 
+                            (fileObj.name as string) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.name as string) ||
+                            (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : null) ||
+                            `Documento_${Date.now()}`;
+                          
+                          const fileSize = 
+                            (fileObj.size as number) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.size as number) ||
+                            0;
+                          
+                          console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize });
+                          
+                          if (!fileUrl) {
+                            console.error(`File ${index} has no URL. Full object:`, fileObj);
+                            return null;
+                          }
+                          
+                          return {
+                            url: fileUrl,
+                            name: fileName,
+                            type: getFileType(fileUrl),
+                            size: fileSize,
+                          };
                         }
                         
-                        return {
-                          url: fileUrl,
-                          name: fileName,
-                          type: getFileType(fileUrl),
-                          size: fileSize,
-                        };
+                        console.error(`File ${index} is not a valid format:`, file);
+                        return null;
                       })
                       .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
                         const isValid = resource !== null && resource.url !== undefined;
@@ -579,6 +533,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       });
 
                     console.log("Valid new resources:", newResources);
+                    console.log("Current resources before update:", resources);
 
                     if (newResources.length === 0) {
                       console.error("No valid resources after processing");
@@ -586,51 +541,32 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       return;
                     }
 
+                    // Agregar nuevos recursos al array existente
                     const updatedResources = [...resources, ...newResources];
-                    console.log("All resources (old + new):", updatedResources);
+                    console.log("Updated resources (old + new):", updatedResources);
                     
-                    // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
-                    setResources(updatedResources);
-                    console.log("Estado local actualizado, recursos visibles:", updatedResources);
-                    
-                    console.log("Saving to database...");
-                    axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
-                      resources: updatedResources,
-                    }).then((response) => {
-                      console.log("Saved successfully:", response.data);
+                    // Guardar en la BD (EXACTAMENTE como onChangeImage en CourseImage)
+                    try {
+                      await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                        resources: updatedResources,
+                      });
                       
-                      // Verificar que los recursos se guardaron correctamente en la respuesta
-                      if (response.data?.resources) {
-                        const savedResources = Array.isArray(response.data.resources) 
-                          ? response.data.resources 
-                          : JSON.parse(response.data.resources || "[]");
-                        setResources(savedResources);
-                        console.log("Resources updated from response:", savedResources);
-                      } else {
-                        // Si la respuesta no incluye recursos, mantener el estado local actualizado
-                        console.log("Response no incluye resources, manteniendo estado local");
-                      }
-                      
-                      toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}! 🔥`);
-                      
-                      // NO hacer router.refresh() inmediatamente para evitar que se pierda el estado local
-                      // El estado local ya está actualizado y los archivos son visibles
-                      // router.refresh() se puede hacer después si es necesario, pero no es crítico
-                      // porque el estado local ya tiene los datos correctos
-                      setTimeout(() => {
-                        router.refresh();
-                      }, 500);
-                    }).catch((error) => {
-                      console.error("Error saving to database:", error);
-                      console.error("Error details:", error.response?.data || error.message);
-                      toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
-                      // Revertir al estado anterior si falla
-                      setResources(resources);
-                    });
+                      // Actualizar estado local DESPUÉS de guardar (como CourseImage hace con setImage)
+                      setResources(updatedResources);
+                      setIsEditing(false);
+                      router.refresh();
+                      toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}!`);
+                    } catch (dbError) {
+                      console.error("Error saving to database:", dbError);
+                      toast.error("Errore durante il salvataggio");
+                      throw dbError;
+                    }
                   } catch (error: unknown) {
-                    console.error("Exception in onClientUploadComplete:", error);
-                    const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
-                    toast.error(`Errore: ${errorMessage}`);
+                    console.error("Error in onClientUploadComplete:", error);
+                    const errorMessage = error && typeof error === 'object' && 'response' in error 
+                      ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+                      : undefined;
+                    toast.error(errorMessage || "Errore durante il caricamento");
                   }
                 }}
                 onUploadError={(error: Error) => {
@@ -646,35 +582,41 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   console.log("Upload progress (documents):", progress);
                   setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
                   
-                  // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
+                  // Fallback: Si el progreso llega a 100% y onClientUploadComplete no se ejecutó
                   if (progress === 100) {
-                    console.log("Upload progress reached 100% but onClientUploadComplete may not fire");
-                    console.log("Attempting to fetch file info from UploadThing response...");
+                    console.log("Upload progress reached 100%, waiting for callback...");
                     
-                    // Esperar un poco y luego intentar obtener los recursos desde el servidor
+                    // Esperar 3 segundos para que el servidor guarde y el callback se ejecute
                     setTimeout(async () => {
                       try {
-                        console.log("Polling server for new resources...");
+                        console.log("Polling server for uploaded files (fallback)...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
+                        
                         if (response.data?.resources) {
                           const serverResources = parseResources(response.data.resources);
                           console.log("Resources from server (polling):", serverResources);
+                          console.log("Current local resources:", resources);
                           
                           // Si hay más recursos en el servidor que en el estado local, actualizar
                           if (serverResources.length > resources.length) {
                             console.log("Found new resources on server, updating local state");
                             setResources(serverResources);
-                            toast.success("File caricato con successo! 🔥");
                             setUploadingFiles([]);
+                            toast.success("File caricato con successo!");
                             router.refresh();
-                          } else {
-                            console.log("No new resources found on server yet");
+                          } else if (serverResources.length === resources.length && serverResources.length > 0) {
+                            // Si tienen la misma cantidad pero pueden ser diferentes, actualizar de todas formas
+                            console.log("Resources count matches, but updating to ensure sync");
+                            setResources(serverResources);
+                            setUploadingFiles([]);
                           }
+                        } else {
+                          console.log("No resources in server response");
                         }
                       } catch (error) {
                         console.error("Error polling server for resources:", error);
                       }
-                    }, 2000); // Esperar 2 segundos para que el servidor procese
+                    }, 3000); // Aumentar a 3 segundos para dar más tiempo al servidor
                   }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
@@ -761,12 +703,12 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
               <UploadButton
                 endpoint="chapterImages"
                 input={{ courseId, chapterId }}
-                onClientUploadComplete={(res) => {
+                onClientUploadComplete={async (res) => {
                   console.log("=== UPLOAD COMPLETE (IMAGES) ===");
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
-                  // Limpiar archivos en progreso cuando el callback se ejecuta
+                  
                   setUploadingFiles([]);
                   
                   try {
@@ -777,6 +719,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     }
 
                     const filesArray = Array.isArray(res) ? res : [res];
+                    console.log("Files array length:", filesArray.length);
                     console.log("Files array:", filesArray);
                     
                     if (filesArray.length === 0) {
@@ -785,28 +728,61 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       return;
                     }
 
+                    // Extraer URLs de los archivos subidos
                     const newResources = filesArray
-                      .map((file: UploadThingFile, index: number) => {
+                      .map((file: unknown, index: number) => {
                         console.log(`Processing file ${index}:`, file);
+                        console.log(`File ${index} type:`, typeof file);
+                        console.log(`File ${index} keys:`, file && typeof file === 'object' ? Object.keys(file) : 'N/A');
                         
-                        const fileUrl = file.url;
-                        const serverData = file.serverData || {};
-                        const fileName = file.name || serverData.name || (fileUrl ? fileUrl.split('/').pop() : undefined) || `Immagine_${Date.now()}`;
-                        const fileSize = file.size || serverData.size || 0;
-                        
-                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData });
-                        
-                        if (!fileUrl) {
-                          console.error(`File ${index} has no URL:`, file);
-                          return null;
+                        // Si es string, es una URL directa
+                        if (typeof file === 'string') {
+                          console.log(`File ${index} is string URL:`, file);
+                          return {
+                            url: file,
+                            name: decodeURIComponent(file.split('/').pop() || '') || `Immagine_${Date.now()}`,
+                            type: "image",
+                            size: 0,
+                          };
                         }
                         
-                        return {
-                          url: fileUrl,
-                          name: fileName,
-                          type: "image",
-                          size: fileSize,
-                        };
+                        // Si es objeto, buscar url en diferentes lugares
+                        if (file && typeof file === 'object') {
+                          const fileObj = file as Record<string, unknown>;
+                          
+                          const fileUrl = 
+                            (fileObj.url as string) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.url as string) ||
+                            null;
+                          
+                          const fileName = 
+                            (fileObj.name as string) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.name as string) ||
+                            (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : null) ||
+                            `Immagine_${Date.now()}`;
+                          
+                          const fileSize = 
+                            (fileObj.size as number) || 
+                            ((fileObj.serverData as Record<string, unknown>)?.size as number) ||
+                            0;
+                          
+                          console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize });
+                          
+                          if (!fileUrl) {
+                            console.error(`File ${index} has no URL. Full object:`, fileObj);
+                            return null;
+                          }
+                          
+                          return {
+                            url: fileUrl,
+                            name: fileName,
+                            type: "image",
+                            size: fileSize,
+                          };
+                        }
+                        
+                        console.error(`File ${index} is not a valid format:`, file);
+                        return null;
                       })
                       .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
                         const isValid = resource !== null && resource.url !== undefined;
@@ -817,6 +793,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       });
 
                     console.log("Valid new resources:", newResources);
+                    console.log("Current resources before update:", resources);
 
                     if (newResources.length === 0) {
                       console.error("No valid resources after processing");
@@ -824,49 +801,32 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                       return;
                     }
 
+                    // Agregar nuevos recursos al array existente
                     const updatedResources = [...resources, ...newResources];
-                    console.log("All resources (old + new):", updatedResources);
+                    console.log("Updated resources (old + new):", updatedResources);
                     
-                    // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
-                    setResources(updatedResources);
-                    console.log("Estado local actualizado, recursos visibles:", updatedResources);
-                    
-                    console.log("Saving to database...");
-                    axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
-                      resources: updatedResources,
-                    }).then((response) => {
-                      console.log("Saved successfully:", response.data);
+                    // Guardar en la BD (EXACTAMENTE como onChangeImage en CourseImage)
+                    try {
+                      await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                        resources: updatedResources,
+                      });
                       
-                      // Verificar que los recursos se guardaron correctamente en la respuesta
-                      if (response.data?.resources) {
-                        const savedResources = Array.isArray(response.data.resources) 
-                          ? response.data.resources 
-                          : JSON.parse(response.data.resources || "[]");
-                        setResources(savedResources);
-                        console.log("Resources updated from response:", savedResources);
-                      } else {
-                        // Si la respuesta no incluye recursos, mantener el estado local actualizado
-                        console.log("Response no incluye resources, manteniendo estado local");
-                      }
-                      
-                      toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}! 🔥`);
-                      
-                      // NO hacer router.refresh() inmediatamente para evitar que se pierda el estado local
-                      // El estado local ya está actualizado y los archivos son visibles
-                      setTimeout(() => {
-                        router.refresh();
-                      }, 500);
-                    }).catch((error) => {
-                      console.error("Error saving to database:", error);
-                      console.error("Error details:", error.response?.data || error.message);
-                      toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
-                      // Revertir al estado anterior si falla
-                      setResources(resources);
-                    });
+                      // Actualizar estado local DESPUÉS de guardar (como CourseImage hace con setImage)
+                      setResources(updatedResources);
+                      setIsEditing(false);
+                      router.refresh();
+                      toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}!`);
+                    } catch (dbError) {
+                      console.error("Error saving to database:", dbError);
+                      toast.error("Errore durante il salvataggio");
+                      throw dbError;
+                    }
                   } catch (error: unknown) {
-                    console.error("Exception in onClientUploadComplete:", error);
-                    const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
-                    toast.error(`Errore: ${errorMessage}`);
+                    console.error("Error in onClientUploadComplete:", error);
+                    const errorMessage = error && typeof error === 'object' && 'response' in error 
+                      ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+                      : undefined;
+                    toast.error(errorMessage || "Errore durante il caricamento");
                   }
                 }}
                 onUploadError={(error: Error) => {
@@ -882,35 +842,41 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   console.log("Upload progress (images):", progress);
                   setUploadingFiles(prev => prev.map(f => ({ ...f, progress })));
                   
-                  // Si el progreso llega a 100, el archivo se subió pero el callback puede no ejecutarse
+                  // Fallback: Si el progreso llega a 100% y onClientUploadComplete no se ejecutó
                   if (progress === 100) {
-                    console.log("Upload progress reached 100% but onClientUploadComplete may not fire");
-                    console.log("Attempting to fetch file info from UploadThing response...");
+                    console.log("Upload progress reached 100%, waiting for callback...");
                     
-                    // Esperar un poco y luego intentar obtener los recursos desde el servidor
+                    // Esperar 3 segundos para que el servidor guarde y el callback se ejecute
                     setTimeout(async () => {
                       try {
-                        console.log("Polling server for new resources...");
+                        console.log("Polling server for uploaded files (fallback)...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
+                        
                         if (response.data?.resources) {
                           const serverResources = parseResources(response.data.resources);
                           console.log("Resources from server (polling):", serverResources);
+                          console.log("Current local resources:", resources);
                           
                           // Si hay más recursos en el servidor que en el estado local, actualizar
                           if (serverResources.length > resources.length) {
                             console.log("Found new resources on server, updating local state");
                             setResources(serverResources);
-                            toast.success("Immagine caricata con successo! 🔥");
                             setUploadingFiles([]);
+                            toast.success("Immagine caricata con successo!");
                             router.refresh();
-                          } else {
-                            console.log("No new resources found on server yet");
+                          } else if (serverResources.length === resources.length && serverResources.length > 0) {
+                            // Si tienen la misma cantidad pero pueden ser diferentes, actualizar de todas formas
+                            console.log("Resources count matches, but updating to ensure sync");
+                            setResources(serverResources);
+                            setUploadingFiles([]);
                           }
+                        } else {
+                          console.log("No resources in server response");
                         }
                       } catch (error) {
                         console.error("Error polling server for resources:", error);
                       }
-                    }, 2000); // Esperar 2 segundos para que el servidor procese
+                    }, 3000); // Aumentar a 3 segundos para dar más tiempo al servidor
                   }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"

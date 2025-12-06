@@ -47,57 +47,33 @@ export const ourFileRouter = {
       })
     )
     .middleware(async ({ input }) => {
-      console.log("[SERVER] Middleware ejecutado para chapterDocument");
-      console.log("[SERVER] Input recibido:", JSON.stringify(input, null, 2));
-      
       // Verificar que las variables de entorno estén configuradas
-      // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
       const hasToken = !!process.env.UPLOADTHING_TOKEN;
       const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
       
       if (!hasToken && !hasSecretAndAppId) {
-        console.error("[SERVER] Uploadthing no está configurado. Faltan variables de entorno");
         throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
-      console.log("[SERVER] Variables de entorno de UploadThing configuradas correctamente");
       
-      // Validar que el input tenga los campos necesarios
-      if (!input || typeof input !== 'object' || !('courseId' in input) || !('chapterId' in input)) {
-        console.error("[SERVER] Input inválido o faltan courseId/chapterId:", input);
-        throw new Error("Input inválido: se requieren courseId y chapterId");
-      }
-      
-      console.log("[SERVER] Input válido, retornando metadata:", { courseId: input.courseId, chapterId: input.chapterId });
-      
-      // Retornar el input para que esté disponible en onUploadComplete
       return { courseId: input.courseId, chapterId: input.chapterId };
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("[SERVER] ===== onUploadComplete EJECUTADO =====");
-      console.log("[SERVER] Document uploaded successfully to UploadThing:", {
-        url: file.url,
-        name: file.name,
-        size: file.size,
-        key: file.key,
-        type: file.type,
-        metadata,
-      });
-      console.log("[SERVER] Metadata recibido:", JSON.stringify(metadata, null, 2));
+      console.log("[SERVER] ===== onUploadComplete EJECUTADO (chapterDocument) =====");
+      console.log("[SERVER] File:", { url: file.url, name: file.name, size: file.size, type: file.type });
+      console.log("[SERVER] Metadata:", JSON.stringify(metadata, null, 2));
       console.log("[SERVER] Metadata type:", typeof metadata);
       console.log("[SERVER] Metadata keys:", metadata ? Object.keys(metadata) : "null");
       
-      // Guardar automáticamente en la BD usando courseId y chapterId del metadata
+      // Guardar automáticamente en la BD (fallback si el callback del cliente no se ejecuta)
       if (metadata && typeof metadata === 'object' && 'courseId' in metadata && 'chapterId' in metadata) {
         try {
           const courseId = metadata.courseId as string;
           const chapterId = metadata.chapterId as string;
           
-          console.log("[SERVER] Auto-saving file to database:", { courseId, chapterId, fileUrl: file.url });
+          console.log("[SERVER] Guardando archivo en BD:", { courseId, chapterId, fileUrl: file.url });
           
-          // Importar Prisma dinámicamente para evitar problemas de importación circular
           const prisma = (await import("@/lib/prisma")).default;
           
-          // Obtener el capítulo actual para agregar el nuevo recurso
           const chapter = await prisma.chapter.findUnique({
             where: { id: chapterId, courseId: courseId },
             select: { resources: true },
@@ -105,49 +81,42 @@ export const ourFileRouter = {
           
           if (!chapter) {
             console.error("[SERVER] Chapter not found:", { courseId, chapterId });
-            return { url: file.url, name: file.name, size: file.size, type: file.type };
+            return { 
+              url: file.url, 
+              name: file.name, 
+              size: file.size,
+              type: file.type
+            };
           }
           
-          // Parsear recursos existentes
+          console.log("[SERVER] Chapter encontrado, resources actuales:", chapter.resources);
+          
           let existingResources: Array<{ url: string; name: string; type?: string; size?: number }> = [];
           if (chapter.resources) {
             if (Array.isArray(chapter.resources)) {
-              // Validar que cada elemento tenga la estructura correcta
-              existingResources = chapter.resources.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
-                return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
-              }).map(r => ({
-                url: (r as { url: string }).url,
-                name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
-                type: (r as { type?: string }).type,
-                size: (r as { size?: number }).size,
-              }));
+              existingResources = chapter.resources as Array<{ url: string; name: string; type?: string; size?: number }>;
             } else if (typeof chapter.resources === 'string') {
               try {
-                const parsed = JSON.parse(chapter.resources);
-                if (Array.isArray(parsed)) {
-                  existingResources = parsed.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
-                    return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
-                  }).map(r => ({
-                    url: (r as { url: string }).url,
-                    name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
-                    type: (r as { type?: string }).type,
-                    size: (r as { size?: number }).size,
-                  }));
-                }
+                existingResources = JSON.parse(chapter.resources) as Array<{ url: string; name: string; type?: string; size?: number }>;
               } catch (e) {
-                console.error("Error parsing existing resources:", e);
+                console.error("[SERVER] Error parsing existing resources:", e);
               }
             }
           }
           
-          // Verificar si el archivo ya existe (por URL)
+          console.log("[SERVER] Existing resources:", existingResources);
+          
           const fileExists = existingResources.some(r => r.url === file.url);
           if (fileExists) {
             console.log("[SERVER] File already exists in database, skipping");
-            return { url: file.url, name: file.name, size: file.size, type: file.type };
+            return { 
+              url: file.url, 
+              name: file.name, 
+              size: file.size,
+              type: file.type
+            };
           }
           
-          // Agregar el nuevo recurso
           const newResource = {
             url: file.url,
             name: file.name || file.url.split('/').pop() || `Documento_${Date.now()}`,
@@ -157,33 +126,28 @@ export const ourFileRouter = {
           
           const updatedResources = [...existingResources, newResource];
           
-          // Guardar en la BD
+          console.log("[SERVER] Actualizando resources en BD:", updatedResources);
+          
           await prisma.chapter.update({
             where: { id: chapterId, courseId: courseId },
             data: { resources: updatedResources },
           });
           
-          console.log("[SERVER] File auto-saved to database successfully");
+          console.log("[SERVER] ✅ File auto-saved to database successfully");
         } catch (error) {
-          console.error("[SERVER] Error auto-saving file to database:", error);
-          // No lanzar error, solo loguear - el cliente puede guardar manualmente
+          console.error("[SERVER] ❌ Error auto-saving file to database:", error);
         }
       } else {
-        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] ⚠️ No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] Metadata recibido:", metadata);
       }
       
-      // Retornar los datos que el cliente espera
-      // En desarrollo local, este callback puede no ejecutarse si UploadThing no puede alcanzar el servidor
-      // Pero UploadThing devolverá los datos directamente al cliente de todas formas
-      const result = { 
+      return { 
         url: file.url, 
         name: file.name, 
         size: file.size,
-        type: file.type // Agregar type para que el cliente pueda determinar el tipo de archivo
+        type: file.type
       };
-      
-      console.log("[SERVER] Returning to client:", result);
-      return result;
     }),
   chapterImages: f({
     image: { maxFileCount: 10, maxFileSize: "4MB" },
@@ -196,10 +160,9 @@ export const ourFileRouter = {
     )
     .middleware(async ({ input }) => {
       console.log("[SERVER] Middleware ejecutado para chapterImages");
-      console.log("[SERVER] Input recibido:", input);
+      console.log("[SERVER] Input recibido:", JSON.stringify(input, null, 2));
       
       // Verificar que las variables de entorno estén configuradas
-      // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
       const hasToken = !!process.env.UPLOADTHING_TOKEN;
       const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
       
@@ -207,31 +170,28 @@ export const ourFileRouter = {
         throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
       
-      // Retornar el input para que esté disponible en onUploadComplete
-      return { courseId: input.courseId, chapterId: input.chapterId };
+      const metadata = { courseId: input.courseId, chapterId: input.chapterId };
+      console.log("[SERVER] Retornando metadata:", metadata);
+      
+      return metadata;
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("[SERVER] Image uploaded successfully to UploadThing:", {
-        url: file.url,
-        name: file.name,
-        size: file.size,
-        key: file.key,
-        type: file.type,
-        metadata,
-      });
+      console.log("[SERVER] ===== onUploadComplete EJECUTADO (chapterImages) =====");
+      console.log("[SERVER] File:", { url: file.url, name: file.name, size: file.size, type: file.type });
+      console.log("[SERVER] Metadata:", JSON.stringify(metadata, null, 2));
+      console.log("[SERVER] Metadata type:", typeof metadata);
+      console.log("[SERVER] Metadata keys:", metadata ? Object.keys(metadata) : "null");
       
-      // Guardar automáticamente en la BD usando courseId y chapterId del metadata
+      // Guardar automáticamente en la BD (fallback si el callback del cliente no se ejecuta)
       if (metadata && typeof metadata === 'object' && 'courseId' in metadata && 'chapterId' in metadata) {
         try {
           const courseId = metadata.courseId as string;
           const chapterId = metadata.chapterId as string;
           
-          console.log("[SERVER] Auto-saving image to database:", { courseId, chapterId, fileUrl: file.url });
+          console.log("[SERVER] Guardando imagen en BD:", { courseId, chapterId, fileUrl: file.url });
           
-          // Importar Prisma dinámicamente para evitar problemas de importación circular
           const prisma = (await import("@/lib/prisma")).default;
           
-          // Obtener el capítulo actual para agregar el nuevo recurso
           const chapter = await prisma.chapter.findUnique({
             where: { id: chapterId, courseId: courseId },
             select: { resources: true },
@@ -242,46 +202,29 @@ export const ourFileRouter = {
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
-          // Parsear recursos existentes
+          console.log("[SERVER] Chapter encontrado, resources actuales:", chapter.resources);
+          
           let existingResources: Array<{ url: string; name: string; type?: string; size?: number }> = [];
           if (chapter.resources) {
             if (Array.isArray(chapter.resources)) {
-              // Validar que cada elemento tenga la estructura correcta
-              existingResources = chapter.resources.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
-                return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
-              }).map(r => ({
-                url: (r as { url: string }).url,
-                name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
-                type: (r as { type?: string }).type,
-                size: (r as { size?: number }).size,
-              }));
+              existingResources = chapter.resources as Array<{ url: string; name: string; type?: string; size?: number }>;
             } else if (typeof chapter.resources === 'string') {
               try {
-                const parsed = JSON.parse(chapter.resources);
-                if (Array.isArray(parsed)) {
-                  existingResources = parsed.filter((r): r is { url: string; name: string; type?: string; size?: number } => {
-                    return typeof r === 'object' && r !== null && 'url' in r && typeof (r as { url: unknown }).url === 'string';
-                  }).map(r => ({
-                    url: (r as { url: string }).url,
-                    name: (r as { name?: string }).name || (r as { url: string }).url.split('/').pop() || 'Unknown',
-                    type: (r as { type?: string }).type,
-                    size: (r as { size?: number }).size,
-                  }));
-                }
+                existingResources = JSON.parse(chapter.resources) as Array<{ url: string; name: string; type?: string; size?: number }>;
               } catch (e) {
-                console.error("Error parsing existing resources:", e);
+                console.error("[SERVER] Error parsing existing resources:", e);
               }
             }
           }
           
-          // Verificar si el archivo ya existe (por URL)
+          console.log("[SERVER] Existing resources:", existingResources);
+          
           const fileExists = existingResources.some(r => r.url === file.url);
           if (fileExists) {
             console.log("[SERVER] Image already exists in database, skipping");
             return { url: file.url, name: file.name, size: file.size, type: file.type };
           }
           
-          // Agregar el nuevo recurso
           const newResource = {
             url: file.url,
             name: file.name || file.url.split('/').pop() || `Immagine_${Date.now()}`,
@@ -291,19 +234,20 @@ export const ourFileRouter = {
           
           const updatedResources = [...existingResources, newResource];
           
-          // Guardar en la BD
+          console.log("[SERVER] Actualizando resources en BD:", updatedResources);
+          
           await prisma.chapter.update({
             where: { id: chapterId, courseId: courseId },
             data: { resources: updatedResources },
           });
           
-          console.log("[SERVER] Image auto-saved to database successfully");
+          console.log("[SERVER] ✅ Image auto-saved to database successfully");
         } catch (error) {
-          console.error("[SERVER] Error auto-saving image to database:", error);
-          // No lanzar error, solo loguear - el cliente puede guardar manualmente
+          console.error("[SERVER] ❌ Error auto-saving image to database:", error);
         }
       } else {
-        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] ⚠️ No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] Metadata recibido:", metadata);
       }
       
       return { url: file.url, name: file.name, size: file.size, type: file.type };

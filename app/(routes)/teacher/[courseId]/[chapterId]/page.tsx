@@ -49,26 +49,6 @@ export default async function ChapterPage({
     return <p>Questo modulo non esiste</p>;
   }
 
-  // Log para debuggear qué devuelve Prisma
-  // Prisma devuelve resources como Json | null, necesitamos hacer un cast
-  const chapterWithResources = chapter as typeof chapter & { resources?: unknown };
-  
-  // Verificar todas las claves del objeto chapter
-  const chapterKeys = Object.keys(chapter);
-  console.log("[PAGE] Chapter keys from Prisma:", chapterKeys);
-  console.log("[PAGE] Chapter has 'resources' key:", 'resources' in chapter);
-  console.log("[PAGE] Chapter object (full):", JSON.stringify(chapter, null, 2));
-  
-  console.log("[PAGE] Chapter from Prisma (detailed):", {
-    id: chapter.id,
-    title: chapter.title,
-    resources: chapterWithResources.resources,
-    resourcesType: typeof chapterWithResources.resources,
-    resourcesIsArray: Array.isArray(chapterWithResources.resources),
-    resourcesStringified: JSON.stringify(chapterWithResources.resources),
-    hasResourcesProperty: 'resources' in chapterWithResources,
-  });
-
   return (
     <div className="m-6">
       <ChapterForm chapter={chapter} courseId={courseId} />
