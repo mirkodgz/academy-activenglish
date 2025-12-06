@@ -28,18 +28,58 @@ import axios from "axios";
 import { toast } from "sonner";
 import { UploadButton } from "@/utils/uploadthing";
 
+// Función helper para parsear recursos desde Prisma JSON
+function parseResources(resources: unknown): Array<{ url: string; name: string; type?: string; size?: number }> {
+  if (!resources) return [];
+  
+  // Si ya es un array, devolverlo
+  if (Array.isArray(resources)) {
+    return resources;
+  }
+  
+  // Si es un string JSON, parsearlo
+  if (typeof resources === 'string') {
+    try {
+      const parsed = JSON.parse(resources);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error("Error parsing resources JSON:", e);
+      return [];
+    }
+  }
+  
+  // Si es un objeto, intentar convertirlo a array
+  if (typeof resources === 'object') {
+    return Array.isArray(resources) ? resources : [];
+  }
+  
+  return [];
+}
+
 export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const { chapterId, courseId, videoUrl, documentUrl, imageUrl, resources: initialResources } = props;
-  const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(initialResources || []);
+  
+  // Parsear recursos iniciales correctamente
+  const parsedInitialResources = parseResources(initialResources);
+  console.log("🔍 Initial resources received:", initialResources);
+  console.log("✅ Parsed initial resources:", parsedInitialResources);
+  
+  const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(parsedInitialResources);
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
   const [videoUrlInput, setVideoUrlInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   const router = useRouter();
 
-  // Filtrar recursos por tipo
-  const documentResources = resources.filter(r => r.type === "pdf" || r.type === "word" || r.type === "excel" || r.type === "file");
-  const imageResources = resources.filter(r => r.type === "image");
+  // Filtrar recursos por tipo - incluir todos los recursos que no sean imágenes
+  const documentResources = resources.filter(r => {
+    const type = r.type?.toLowerCase() || "";
+    return type === "pdf" || type === "word" || type === "excel" || type === "file" || (!type && r.url); // Incluir recursos sin tipo si tienen URL
+  });
+  const imageResources = resources.filter(r => r.type?.toLowerCase() === "image");
+  
+  console.log("📄 Document resources:", documentResources);
+  console.log("🖼️ Image resources:", imageResources);
 
   // Determinar qué tipo de archivo está actualmente configurado
   useEffect(() => {
@@ -57,11 +97,15 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
     }
   }, [videoUrl, documentUrl, imageUrl, documentResources.length, imageResources.length]);
 
-  // Actualizar recursos cuando cambien
+  // Actualizar recursos cuando cambien desde el servidor
   useEffect(() => {
-    if (initialResources) {
-      setResources(initialResources);
-    }
+    const parsedResources = parseResources(initialResources);
+    console.log("📥 Resources updated from props (useEffect):", {
+      initialResources,
+      parsedResources,
+      resourcesLength: parsedResources.length
+    });
+    setResources(parsedResources);
   }, [initialResources]);
 
   const onSubmit = async (url: string, type: AttachmentType) => {
@@ -320,23 +364,32 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
         <TabsContent value="document" className="mt-4">
           <div className="space-y-4">
+            {/* Debug info - remover en producción */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-2 bg-muted rounded text-xs">
+                <p>Total resources: {resources.length}</p>
+                <p>Document resources: {documentResources.length}</p>
+                <p>Resources: {JSON.stringify(resources, null, 2)}</p>
+              </div>
+            )}
+            
             {/* Lista de documentos cargados en grid */}
-            {documentResources.length > 0 && (
+            {documentResources.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
                 {documentResources.map((resource, index) => {
                   const resourceIndex = resources.findIndex(r => r.url === resource.url);
                   const fileIcon = getFileIcon(resource.type || "");
                   return (
                     <div
-                      key={index}
+                      key={`doc-${index}-${resource.url}`}
                       className="relative group border rounded-lg overflow-hidden bg-card hover:shadow-md transition-all duration-200"
                     >
                       <div className="aspect-square flex flex-col items-center justify-center p-4 bg-muted/50">
                         <div className="w-12 h-12 flex items-center justify-center mb-2">
                           {fileIcon}
                         </div>
-                        <p className="text-xs font-medium text-center line-clamp-2 px-1">
-                          {resource.name}
+                        <p className="text-xs font-medium text-center line-clamp-2 px-1" title={resource.name}>
+                          {resource.name || "Sin nombre"}
                         </p>
                       </div>
                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -376,6 +429,21 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   );
                 })}
               </div>
+            ) : (
+              <div className="p-4 border rounded-lg bg-muted/20 mb-4">
+                <p className="text-sm text-muted-foreground">Nessun documento caricato</p>
+                <p className="text-xs text-muted-foreground mt-1">Total risorse nel database: {resources.length}</p>
+                {resources.length > 0 && (
+                  <div className="mt-2 text-xs">
+                    <p className="font-semibold">Risorse trovate (ma non mostrate come documenti):</p>
+                    <ul className="list-disc list-inside mt-1">
+                      {resources.map((r, i) => (
+                        <li key={i}>{r.name || r.url} (tipo: {r.type || "sin tipo"})</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Área de carga con diseño de la foto 2 */}
@@ -383,11 +451,13 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
               <UploadButton
                 endpoint="chapterDocument"
                 onClientUploadComplete={(res) => {
-                  console.log("=== UPLOAD COMPLETE (CLIENT) ===");
+                  console.log("🔥🔥🔥 === UPLOAD COMPLETE (CLIENT) === 🔥🔥🔥");
+                  console.log("🔥 CALLBACK EXECUTED - res:", res);
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
                   console.log("Response keys:", res ? Object.keys(res) : "null");
+                  console.log("Response value:", res);
                   
                   try {
                     if (!res) {
@@ -410,16 +480,41 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     }
 
                     const newResources = filesArray
-                      .map((file: UploadThingFile, index: number) => {
+                      .map((file: UploadThingFile | { url?: string; name?: string; size?: number; serverData?: { url?: string; name?: string; size?: number } } | string, index: number) => {
                         console.log(`Processing file ${index}:`, file);
                         
-                        // UploadThing estructura: file.url es la URL directa, file.serverData contiene los datos del servidor
-                        const fileUrl = file.url;
-                        const serverData = file.serverData || {};
-                        const fileName = file.name || serverData.name || (fileUrl ? fileUrl.split('/').pop() : undefined) || `Documento_${Date.now()}`;
-                        const fileSize = file.size || serverData.size || 0;
+                        // Type guard para verificar si es string
+                        if (typeof file === 'string') {
+                          const fileUrl = file;
+                          const fileName = decodeURIComponent(fileUrl.split('/').pop() || '') || `Documento_${Date.now()}`;
+                          return {
+                            url: fileUrl,
+                            name: fileName,
+                            type: getFileType(fileUrl),
+                            size: 0,
+                          };
+                        }
                         
-                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData });
+                        // Type guard para verificar si tiene las propiedades esperadas
+                        const fileObj = file as UploadThingFile | { url?: string; name?: string; size?: number; serverData?: { url?: string; name?: string; size?: number } };
+                        
+                        console.log(`File ${index} structure:`, {
+                          hasUrl: !!(fileObj.url || (fileObj as { serverData?: { url?: string } }).serverData?.url),
+                          hasName: !!fileObj.name,
+                          hasSize: !!fileObj.size,
+                          hasServerData: !!(fileObj as { serverData?: unknown }).serverData,
+                          fileKeys: Object.keys(fileObj || {}),
+                        });
+                        
+                        // UploadThing puede devolver los datos de diferentes formas:
+                        // 1. file.url, file.name, file.size directamente
+                        // 2. file.serverData.url, file.serverData.name, file.serverData.size
+                        const serverData = (fileObj as { serverData?: { url?: string; name?: string; size?: number } }).serverData || {};
+                        const fileUrl = fileObj.url || serverData.url || null;
+                        const fileName = fileObj.name || serverData.name || (fileUrl ? decodeURIComponent(fileUrl.split('/').pop() || '') : undefined) || `Documento_${Date.now()}`;
+                        const fileSize = fileObj.size || serverData.size || 0;
+                        
+                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData, originalFile: file });
                         
                         if (!fileUrl) {
                           console.error(`File ${index} has no URL:`, file);
@@ -452,19 +547,42 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     const updatedResources = [...resources, ...newResources];
                     console.log("All resources (old + new):", updatedResources);
                     
+                    // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
                     setResources(updatedResources);
+                    console.log("✅ Estado local actualizado, recursos visibles:", updatedResources);
                     
                     console.log("Saving to database...");
                     axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
                       resources: updatedResources,
                     }).then((response) => {
                       console.log("✅ Saved successfully:", response.data);
+                      
+                      // Verificar que los recursos se guardaron correctamente en la respuesta
+                      if (response.data?.resources) {
+                        const savedResources = Array.isArray(response.data.resources) 
+                          ? response.data.resources 
+                          : JSON.parse(response.data.resources || "[]");
+                        setResources(savedResources);
+                        console.log("✅ Resources updated from response:", savedResources);
+                      } else {
+                        // Si la respuesta no incluye recursos, mantener el estado local actualizado
+                        console.log("⚠️ Response no incluye resources, manteniendo estado local");
+                      }
+                      
                       toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}! 🔥`);
-                      router.refresh();
+                      
+                      // NO hacer router.refresh() inmediatamente para evitar que se pierda el estado local
+                      // El estado local ya está actualizado y los archivos son visibles
+                      // router.refresh() se puede hacer después si es necesario, pero no es crítico
+                      // porque el estado local ya tiene los datos correctos
+                      setTimeout(() => {
+                        router.refresh();
+                      }, 500);
                     }).catch((error) => {
                       console.error("❌ Error saving to database:", error);
                       console.error("Error details:", error.response?.data || error.message);
                       toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
+                      // Revertir al estado anterior si falla
                       setResources(resources);
                     });
                   } catch (error: unknown) {
@@ -627,19 +745,40 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                     const updatedResources = [...resources, ...newResources];
                     console.log("All resources (old + new):", updatedResources);
                     
+                    // Actualizar el estado local INMEDIATAMENTE para mostrar los archivos
                     setResources(updatedResources);
+                    console.log("✅ Estado local actualizado, recursos visibles:", updatedResources);
                     
                     console.log("Saving to database...");
                     axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
                       resources: updatedResources,
                     }).then((response) => {
                       console.log("✅ Saved successfully:", response.data);
+                      
+                      // Verificar que los recursos se guardaron correctamente en la respuesta
+                      if (response.data?.resources) {
+                        const savedResources = Array.isArray(response.data.resources) 
+                          ? response.data.resources 
+                          : JSON.parse(response.data.resources || "[]");
+                        setResources(savedResources);
+                        console.log("✅ Resources updated from response:", savedResources);
+                      } else {
+                        // Si la respuesta no incluye recursos, mantener el estado local actualizado
+                        console.log("⚠️ Response no incluye resources, manteniendo estado local");
+                      }
+                      
                       toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}! 🔥`);
-                      router.refresh();
+                      
+                      // NO hacer router.refresh() inmediatamente para evitar que se pierda el estado local
+                      // El estado local ya está actualizado y los archivos son visibles
+                      setTimeout(() => {
+                        router.refresh();
+                      }, 500);
                     }).catch((error) => {
                       console.error("❌ Error saving to database:", error);
                       console.error("Error details:", error.response?.data || error.message);
                       toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
+                      // Revertir al estado anterior si falla
                       setResources(resources);
                     });
                   } catch (error: unknown) {

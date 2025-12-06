@@ -38,7 +38,7 @@ export function AppSidebar() {
           </Link>
         </SidebarHeader>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground">Piattaforma</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Piattaforma</SidebarGroupLabel>
           <SidebarMenu className="space-y-2">
             {routes.map((item) => (
               <SidebarMenuItem key={item.title}>
@@ -47,7 +47,7 @@ export function AppSidebar() {
                     <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                       <item.icon className="w-4 h-4" />
                     </div>
-                    {state === "expanded" && <span className="text-sidebar-foreground">{item.title}</span>}
+                    {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -57,7 +57,7 @@ export function AppSidebar() {
           {/* Rutas para Estudiantes */}
           {status === "authenticated" && userRole === "STUDENT" && (
             <SidebarMenu className="mt-4 space-y-2">
-              <SidebarGroupLabel className="text-sidebar-foreground">Studente</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Studente</SidebarGroupLabel>
               {routesStudent.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -65,7 +65,7 @@ export function AppSidebar() {
                       <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                         <item.icon className="w-4 h-4" />
                       </div>
-                      {state === "expanded" && <span className="text-sidebar-foreground">{item.title}</span>}
+                      {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -76,7 +76,7 @@ export function AppSidebar() {
           {/* Rutas para Administradores */}
           {status === "authenticated" && userRole === "ADMIN" && (
             <SidebarMenu className="mt-4 space-y-2">
-              <SidebarGroupLabel className="text-sidebar-foreground">Admin</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Admin</SidebarGroupLabel>
               {routesTeacher.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -84,7 +84,7 @@ export function AppSidebar() {
                       <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                         <item.icon className="w-4 h-4" />
                       </div>
-                      {state === "expanded" && <span className="text-sidebar-foreground">{item.title}</span>}
+                      {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

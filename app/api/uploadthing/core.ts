@@ -1,5 +1,9 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 
+// UploadThing busca automáticamente estas variables de entorno en este orden:
+// 1. UPLOADTHING_TOKEN (token combinado)
+// 2. UPLOADTHING_SECRET + UPLOADTHING_APP_ID (separados)
+// Si no encuentra ninguna, lanzará un error
 const f = createUploadthing();
 
 export const ourFileRouter = {
@@ -11,8 +15,12 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       // Verificar que las variables de entorno estén configuradas
-      if (!process.env.UPLOADTHING_SECRET || !process.env.UPLOADTHING_APP_ID) {
-        throw new Error("Uploadthing no está configurado. Faltan UPLOADTHING_SECRET o UPLOADTHING_APP_ID");
+      // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
+      const hasToken = !!process.env.UPLOADTHING_TOKEN;
+      const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
+      
+      if (!hasToken && !hasSecretAndAppId) {
+        throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
       return {};
     })
@@ -34,15 +42,19 @@ export const ourFileRouter = {
     .middleware(async () => {
       console.log("🔐 Middleware ejecutado para chapterDocument");
       // Verificar que las variables de entorno estén configuradas
-      if (!process.env.UPLOADTHING_SECRET || !process.env.UPLOADTHING_APP_ID) {
+      // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
+      const hasToken = !!process.env.UPLOADTHING_TOKEN;
+      const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
+      
+      if (!hasToken && !hasSecretAndAppId) {
         console.error("❌ Uploadthing no está configurado. Faltan variables de entorno");
-        throw new Error("Uploadthing no está configurado. Faltan UPLOADTHING_SECRET o UPLOADTHING_APP_ID");
+        throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
       console.log("✅ Variables de entorno de UploadThing configuradas correctamente");
       return {};
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      console.log("✅ Document uploaded successfully to UploadThing:", {
+      console.log("✅ [SERVER] Document uploaded successfully to UploadThing:", {
         url: file.url,
         name: file.name,
         size: file.size,
@@ -52,13 +64,15 @@ export const ourFileRouter = {
       });
       
       // Retornar los datos que el cliente espera
+      // En desarrollo local, este callback puede no ejecutarse si UploadThing no puede alcanzar el servidor
+      // Pero UploadThing devolverá los datos directamente al cliente de todas formas
       const result = { 
         url: file.url, 
         name: file.name, 
         size: file.size 
       };
       
-      console.log("📤 Returning to client:", result);
+      console.log("📤 [SERVER] Returning to client:", result);
       return result;
     }),
   chapterImages: f({
@@ -66,8 +80,12 @@ export const ourFileRouter = {
   })
     .middleware(async () => {
       // Verificar que las variables de entorno estén configuradas
-      if (!process.env.UPLOADTHING_SECRET || !process.env.UPLOADTHING_APP_ID) {
-        throw new Error("Uploadthing no está configurado. Faltan UPLOADTHING_SECRET o UPLOADTHING_APP_ID");
+      // UploadThing puede usar UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID
+      const hasToken = !!process.env.UPLOADTHING_TOKEN;
+      const hasSecretAndAppId = !!process.env.UPLOADTHING_SECRET && !!process.env.UPLOADTHING_APP_ID;
+      
+      if (!hasToken && !hasSecretAndAppId) {
+        throw new Error("Uploadthing no está configurado. Necesitas UPLOADTHING_TOKEN o UPLOADTHING_SECRET + UPLOADTHING_APP_ID");
       }
       return {};
     })
