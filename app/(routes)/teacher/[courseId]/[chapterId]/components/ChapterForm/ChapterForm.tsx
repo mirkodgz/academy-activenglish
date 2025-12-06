@@ -83,6 +83,7 @@ export function ChapterForm(props: ChapterFormProps) {
         videoUrl={chapter.videoUrl}
         documentUrl={chapter.documentUrl}
         imageUrl={chapter.imageUrl}
+        resources={(chapter as typeof chapter & { resources?: Array<{ url: string; name: string; type?: string; size?: number }> | null }).resources}
       />
     </div>
   );

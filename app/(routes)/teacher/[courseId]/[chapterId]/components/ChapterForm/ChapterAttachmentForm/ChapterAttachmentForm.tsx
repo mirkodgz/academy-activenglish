@@ -1,8 +1,20 @@
 "use client";
 
-import { FileText, Image as ImageIcon, Video, Link as LinkIcon, Upload } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { FileText, Image as ImageIcon, Video, Link as LinkIcon, Upload, Download, X, File, FileSpreadsheet, FileType } from "lucide-react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+
+// Tipo para la respuesta de UploadThing
+interface UploadThingFile {
+  url: string;
+  name?: string;
+  size?: number;
+  serverData?: {
+    url?: string;
+    name?: string;
+    size?: number;
+  };
+}
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,26 +29,40 @@ import { toast } from "sonner";
 import { UploadButton } from "@/utils/uploadthing";
 
 export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
-  const { chapterId, courseId, videoUrl, documentUrl, imageUrl } = props;
+  const { chapterId, courseId, videoUrl, documentUrl, imageUrl, resources: initialResources } = props;
+  const [resources, setResources] = useState<Array<{ url: string; name: string; type?: string; size?: number }>>(initialResources || []);
   const [activeTab, setActiveTab] = useState<AttachmentType>(null);
   const [videoUrlInput, setVideoUrlInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
+
+  // Filtrar recursos por tipo
+  const documentResources = resources.filter(r => r.type === "pdf" || r.type === "word" || r.type === "excel" || r.type === "file");
+  const imageResources = resources.filter(r => r.type === "image");
 
   // Determinar qué tipo de archivo está actualmente configurado
   useEffect(() => {
     if (videoUrl) {
       setActiveTab("video");
       setVideoUrlInput(videoUrl);
+    } else if (documentResources.length > 0) {
+      setActiveTab("document");
+    } else if (imageResources.length > 0) {
+      setActiveTab("image");
     } else if (documentUrl) {
       setActiveTab("document");
     } else if (imageUrl) {
       setActiveTab("image");
     }
-  }, [videoUrl, documentUrl, imageUrl]);
+  }, [videoUrl, documentUrl, imageUrl, documentResources.length, imageResources.length]);
+
+  // Actualizar recursos cuando cambien
+  useEffect(() => {
+    if (initialResources) {
+      setResources(initialResources);
+    }
+  }, [initialResources]);
 
   const onSubmit = async (url: string, type: AttachmentType) => {
     try {
@@ -79,55 +105,6 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
     }
   };
 
-  const handleFileUpload = async (file: File, type: AttachmentType) => {
-    if (!file) return;
-
-    // Validaciones según el tipo
-    if (type === "image") {
-      // Las imágenes siguen usando Cloudinary (optimización de imágenes)
-      if (!file.type.startsWith("image/")) {
-        toast.error("Per favore, seleziona un file immagine");
-        return;
-      }
-      if (file.size > 4 * 1024 * 1024) {
-        toast.error("L'immagine deve essere inferiore a 4MB");
-        return;
-      }
-
-      setIsUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("type", type || "");
-
-        const response = await axios.post("/api/cloudinary/upload-chapter", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        if (response.data?.url) {
-          await onSubmit(response.data.url, type);
-        } else {
-          throw new Error("URL non ricevuta");
-        }
-      } catch (error: unknown) {
-        console.error("Error uploading file:", error);
-        const errorMessage = error && typeof error === 'object' && 'response' in error 
-          ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
-          : undefined;
-        toast.error(
-          errorMessage || "Errore durante il caricamento dell'immagine"
-        );
-      } finally {
-        setIsUploading(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    }
-    // Videos y documentos ahora usan UploadThing (no se suben aquí, se usa UploadButton)
-  };
 
   const handleRemove = async (type: AttachmentType) => {
     try {
@@ -343,151 +320,354 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
         <TabsContent value="document" className="mt-4">
           <div className="space-y-4">
-            {documentUrl && !isEditing && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Documento attuale</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsEditing(true)}
+            {/* Lista de documentos cargados en grid */}
+            {documentResources.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+                {documentResources.map((resource, index) => {
+                  const resourceIndex = resources.findIndex(r => r.url === resource.url);
+                  const fileIcon = getFileIcon(resource.type || "");
+                  return (
+                    <div
+                      key={index}
+                      className="relative group border rounded-lg overflow-hidden bg-card hover:shadow-md transition-all duration-200"
                     >
-                      Modifica
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRemove("document")}
-                    >
-                      Rimuovi
-                    </Button>
-                  </div>
-                </div>
-                <div className="rounded-md border p-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <a
-                      href={documentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline break-all"
-                    >
-                      {documentUrl.split("/").pop() || "Documento"}
-                    </a>
-                  </div>
-                </div>
+                      <div className="aspect-square flex flex-col items-center justify-center p-4 bg-muted/50">
+                        <div className="w-12 h-12 flex items-center justify-center mb-2">
+                          {fileIcon}
+                        </div>
+                        <p className="text-xs font-medium text-center line-clamp-2 px-1">
+                          {resource.name}
+                        </p>
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 bg-background/90 hover:bg-background shadow-sm"
+                          asChild
+                        >
+                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
+                          onClick={async () => {
+                            const updatedResources = resources.filter((_, i) => i !== resourceIndex);
+                            setResources(updatedResources);
+                            try {
+                              await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                                resources: updatedResources,
+                              });
+                              toast.success("Documento rimosso");
+                              router.refresh();
+                            } catch {
+                              toast.error("Errore durante la rimozione");
+                              setResources(resources);
+                            }
+                          }}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {(isEditing || !documentUrl) && (
-              <div className="space-y-4 border rounded-md p-4">
-                <Label>Carica documento (PDF, DOC, DOCX, etc.)</Label>
-                <UploadButton
-                  endpoint="chapterDocument"
-                  onClientUploadComplete={(res) => {
-                    if (res && res[0]?.url) {
-                      onSubmit(res[0].url, "document");
-                      toast.success("Documento caricato con successo! 🔥");
+            {/* Área de carga con diseño de la foto 2 */}
+            <div className="border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
+              <UploadButton
+                endpoint="chapterDocument"
+                onClientUploadComplete={(res) => {
+                  console.log("=== UPLOAD COMPLETE (CLIENT) ===");
+                  console.log("Full response:", JSON.stringify(res, null, 2));
+                  console.log("Response type:", typeof res);
+                  console.log("Is array:", Array.isArray(res));
+                  console.log("Response keys:", res ? Object.keys(res) : "null");
+                  
+                  try {
+                    if (!res) {
+                      console.error("⚠️ Response is null or undefined - UploadThing callback may not have executed");
+                      console.log("💡 This is normal in development. The file is uploaded but callback may not fire.");
+                      console.log("💡 Checking UploadThing dashboard to get file URL...");
+                      
+                      // Mostrar mensaje al usuario
+                      toast.info("File uploaded to UploadThing. Please check the dashboard to get the URL.");
+                      return;
                     }
-                  }}
-                  onUploadError={(error: Error) => {
-                    toast.error(`Errore durante il caricamento: ${error.message}`);
-                  }}
-                  className="w-full ut-button:bg-primary ut-button:text-primary-foreground ut-button:hover:bg-primary/90"
-                />
+
+                    const filesArray = Array.isArray(res) ? res : [res];
+                    console.log("Files array:", filesArray);
+                    
+                    if (filesArray.length === 0) {
+                      console.error("Empty files array");
+                      toast.error("Errore: nessun file nella risposta");
+                      return;
+                    }
+
+                    const newResources = filesArray
+                      .map((file: UploadThingFile, index: number) => {
+                        console.log(`Processing file ${index}:`, file);
+                        
+                        // UploadThing estructura: file.url es la URL directa, file.serverData contiene los datos del servidor
+                        const fileUrl = file.url;
+                        const serverData = file.serverData || {};
+                        const fileName = file.name || serverData.name || (fileUrl ? fileUrl.split('/').pop() : undefined) || `Documento_${Date.now()}`;
+                        const fileSize = file.size || serverData.size || 0;
+                        
+                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData });
+                        
+                        if (!fileUrl) {
+                          console.error(`File ${index} has no URL:`, file);
+                          return null;
+                        }
+                        
+                        return {
+                          url: fileUrl,
+                          name: fileName,
+                          type: getFileType(fileUrl),
+                          size: fileSize,
+                        };
+                      })
+                      .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
+                        const isValid = resource !== null && resource.url !== undefined;
+                        if (!isValid) {
+                          console.error("Filtered out invalid resource:", resource);
+                        }
+                        return isValid;
+                      });
+
+                    console.log("Valid new resources:", newResources);
+
+                    if (newResources.length === 0) {
+                      console.error("No valid resources after processing");
+                      toast.error("Errore: nessun file valido processato");
+                      return;
+                    }
+
+                    const updatedResources = [...resources, ...newResources];
+                    console.log("All resources (old + new):", updatedResources);
+                    
+                    setResources(updatedResources);
+                    
+                    console.log("Saving to database...");
+                    axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                      resources: updatedResources,
+                    }).then((response) => {
+                      console.log("✅ Saved successfully:", response.data);
+                      toast.success(`${newResources.length} document${newResources.length > 1 ? "i" : "o"} caricat${newResources.length > 1 ? "i" : "o"}! 🔥`);
+                      router.refresh();
+                    }).catch((error) => {
+                      console.error("❌ Error saving to database:", error);
+                      console.error("Error details:", error.response?.data || error.message);
+                      toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
+                      setResources(resources);
+                    });
+                  } catch (error: unknown) {
+                    console.error("❌ Exception in onClientUploadComplete:", error);
+                    const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
+                    toast.error(`Errore: ${errorMessage}`);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  console.error("Upload error:", error);
+                  toast.error(`Errore durante il caricamento: ${error.message}`);
+                }}
+                onUploadBegin={(name) => {
+                  console.log("Upload begin:", name);
+                }}
+                className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-0">
+                <Upload className="w-8 h-8 text-primary" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  {documentResources.length > 0 ? "Clicca per aggiungere più documenti" : "Clicca per selezionare i documenti"}
+                </p>
                 <p className="text-xs text-muted-foreground">Max 16MB (PDF, DOC, DOCX, etc.)</p>
-                {documentUrl && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Annulla
-                  </Button>
-                )}
               </div>
-            )}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Puoi caricare fino a 10 documenti alla volta (Max 16MB ciascuno)
+            </p>
           </div>
         </TabsContent>
 
         <TabsContent value="image" className="mt-4">
           <div className="space-y-4">
-            {imageUrl && !isEditing && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Immagine attuale</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsEditing(true)}
+            {/* Lista de imágenes cargadas en grid */}
+            {imageResources.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+                {imageResources.map((resource, index) => {
+                  const resourceIndex = resources.findIndex(r => r.url === resource.url);
+                  return (
+                    <div
+                      key={index}
+                      className="relative group border rounded-lg overflow-hidden bg-card hover:shadow-md transition-all duration-200"
                     >
-                      Modifica
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRemove("image")}
-                    >
-                      Rimuovi
-                    </Button>
-                  </div>
-                </div>
-                <div className="rounded-md border p-4">
-                  <Image
-                    src={imageUrl}
-                    alt="Immagine del modulo"
-                    width={500}
-                    height={300}
-                    className="rounded-md object-cover"
-                  />
-                </div>
+                      <div className="aspect-square relative bg-muted/50">
+                        <Image
+                          src={resource.url}
+                          alt={resource.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      </div>
+                      <div className="p-2 bg-card">
+                        <p className="text-xs font-medium truncate">{resource.name}</p>
+                      </div>
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 bg-background/90 hover:bg-background shadow-sm"
+                          asChild
+                        >
+                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 bg-destructive/90 hover:bg-destructive text-destructive-foreground shadow-sm"
+                          onClick={async () => {
+                            const updatedResources = resources.filter((_, i) => i !== resourceIndex);
+                            setResources(updatedResources);
+                            try {
+                              await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                                resources: updatedResources,
+                              });
+                              toast.success("Immagine rimossa");
+                              router.refresh();
+                            } catch {
+                              toast.error("Errore durante la rimozione");
+                              setResources(resources);
+                            }
+                          }}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {(isEditing || !imageUrl) && (
-              <div className="space-y-4 border rounded-md p-4">
-                <Label>Carica immagine</Label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFileUpload(file, "image");
-                  }}
-                  className="hidden"
-                  id="chapter-image-upload"
-                  disabled={isUploading}
-                />
-                <label
-                  htmlFor="chapter-image-upload"
-                  className="flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-border rounded-md p-4 hover:border-primary transition-colors"
-                >
-                  {isUploading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="text-sm text-muted-foreground">Caricamento in corso...</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-primary" />
-                      <p className="text-sm text-muted-foreground">Clicca per selezionare un&apos;immagine</p>
-                      <p className="text-xs text-muted-foreground">Max 4MB</p>
-                    </div>
-                  )}
-                </label>
-                {imageUrl && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
-                    disabled={isUploading}
-                  >
-                    Annulla
-                  </Button>
-                )}
+            {/* Área de carga con diseño de la foto 2 */}
+            <div className="relative border-2 border-dashed border-border rounded-md p-8 hover:border-primary transition-colors bg-muted/20">
+              <UploadButton
+                endpoint="chapterImages"
+                onClientUploadComplete={(res) => {
+                  console.log("=== UPLOAD COMPLETE (IMAGES) ===");
+                  console.log("Full response:", JSON.stringify(res, null, 2));
+                  console.log("Response type:", typeof res);
+                  console.log("Is array:", Array.isArray(res));
+                  
+                  try {
+                    if (!res) {
+                      console.error("Response is null or undefined");
+                      toast.error("Errore: risposta vuota da UploadThing");
+                      return;
+                    }
+
+                    const filesArray = Array.isArray(res) ? res : [res];
+                    console.log("Files array:", filesArray);
+                    
+                    if (filesArray.length === 0) {
+                      console.error("Empty files array");
+                      toast.error("Errore: nessun file nella risposta");
+                      return;
+                    }
+
+                    const newResources = filesArray
+                      .map((file: UploadThingFile, index: number) => {
+                        console.log(`Processing file ${index}:`, file);
+                        
+                        const fileUrl = file.url;
+                        const serverData = file.serverData || {};
+                        const fileName = file.name || serverData.name || (fileUrl ? fileUrl.split('/').pop() : undefined) || `Immagine_${Date.now()}`;
+                        const fileSize = file.size || serverData.size || 0;
+                        
+                        console.log(`File ${index} extracted:`, { fileUrl, fileName, fileSize, serverData });
+                        
+                        if (!fileUrl) {
+                          console.error(`File ${index} has no URL:`, file);
+                          return null;
+                        }
+                        
+                        return {
+                          url: fileUrl,
+                          name: fileName,
+                          type: "image",
+                          size: fileSize,
+                        };
+                      })
+                      .filter((resource): resource is { url: string; name: string; type: string; size: number } => {
+                        const isValid = resource !== null && resource.url !== undefined;
+                        if (!isValid) {
+                          console.error("Filtered out invalid resource:", resource);
+                        }
+                        return isValid;
+                      });
+
+                    console.log("Valid new resources:", newResources);
+
+                    if (newResources.length === 0) {
+                      console.error("No valid resources after processing");
+                      toast.error("Errore: nessun file valido processato");
+                      return;
+                    }
+
+                    const updatedResources = [...resources, ...newResources];
+                    console.log("All resources (old + new):", updatedResources);
+                    
+                    setResources(updatedResources);
+                    
+                    console.log("Saving to database...");
+                    axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, {
+                      resources: updatedResources,
+                    }).then((response) => {
+                      console.log("✅ Saved successfully:", response.data);
+                      toast.success(`${newResources.length} immagin${newResources.length > 1 ? "i" : "e"} caricat${newResources.length > 1 ? "e" : "a"}! 🔥`);
+                      router.refresh();
+                    }).catch((error) => {
+                      console.error("❌ Error saving to database:", error);
+                      console.error("Error details:", error.response?.data || error.message);
+                      toast.error(`Errore durante il salvataggio: ${error.response?.data?.message || error.message}`);
+                      setResources(resources);
+                    });
+                  } catch (error: unknown) {
+                    console.error("❌ Exception in onClientUploadComplete:", error);
+                    const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
+                    toast.error(`Errore: ${errorMessage}`);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  console.error("Upload error:", error);
+                  toast.error(`Errore durante il caricamento: ${error.message}`);
+                }}
+                onUploadBegin={(name) => {
+                  console.log("Upload begin:", name);
+                }}
+                className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-0">
+                <Upload className="w-8 h-8 text-primary" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  {imageResources.length > 0 ? "Clicca per aggiungere più immagini" : "Clicca per selezionare un&apos;immagine"}
+                </p>
+                <p className="text-xs text-muted-foreground">Max 4MB</p>
               </div>
-            )}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Puoi caricare fino a 10 immagini alla volta (Max 4MB ciascuna)
+            </p>
           </div>
         </TabsContent>
       </Tabs>
@@ -499,5 +679,27 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
       </div>
     </div>
   );
+
+  function getFileType(url: string): string {
+    const extension = url.split(".").pop()?.toLowerCase() || "";
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) return "image";
+    if (extension === "pdf") return "pdf";
+    if (["xls", "xlsx"].includes(extension)) return "excel";
+    if (["doc", "docx"].includes(extension)) return "word";
+    return "file";
+  }
+
+  function getFileIcon(type: string) {
+    switch (type) {
+      case "pdf":
+        return <FileText className="w-12 h-12 text-red-600" />;
+      case "word":
+        return <FileType className="w-12 h-12 text-blue-600" />;
+      case "excel":
+        return <FileSpreadsheet className="w-12 h-12 text-green-600" />;
+      default:
+        return <File className="w-12 h-12 text-primary" />;
+    }
+  }
 }
 

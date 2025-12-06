@@ -30,6 +30,8 @@ export async function PATCH(
       return new NextResponse("Course not found", { status: 404 });
     }
 
+    console.log("[COURSE_CHAPTER_UPDATE] Updating chapter with values:", JSON.stringify(values, null, 2));
+
     const chapter = await prisma.chapter.update({
       where: {
         id: chapterId,
@@ -39,6 +41,8 @@ export async function PATCH(
         ...values,
       },
     });
+
+    console.log("[COURSE_CHAPTER_UPDATE] Chapter updated successfully:", JSON.stringify(chapter, null, 2));
 
     return NextResponse.json(chapter);
   } catch (error) {

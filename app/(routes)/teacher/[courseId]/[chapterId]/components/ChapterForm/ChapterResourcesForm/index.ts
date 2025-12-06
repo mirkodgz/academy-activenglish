@@ -1,0 +1,2 @@
+export { ChapterResourcesForm } from "./ChapterResourcesForm";
+

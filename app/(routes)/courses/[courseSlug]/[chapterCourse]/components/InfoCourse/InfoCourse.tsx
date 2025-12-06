@@ -10,6 +10,7 @@ export function InfoCourse(props: InfoCourseProps) {
     purchaseCourse,
     userProgress,
     videoUrl,
+    resources,
   } = props;
 
   const { title, description } = infoCourse;
@@ -31,7 +32,8 @@ export function InfoCourse(props: InfoCourseProps) {
       )}
 
       {videoUrl && (
-        <div className="bg-card rounded-md p-4 shadow-md">
+        <div className="bg-card rounded-md p-4 shadow-md space-y-2">
+          <h2 className="text-2xl font-semibold text-card-foreground">{title}</h2>
           <VideoCourse videoUrl={videoUrl} />
         </div>
       )}
@@ -41,12 +43,12 @@ export function InfoCourse(props: InfoCourseProps) {
           userProgress={userProgress}
           chapterCourseId={chapterCourseId}
           infoCourse={infoCourse}
+          resources={resources}
         />
       </div>
 
       <div className="bg-card rounded-md p-6 shadow-md space-y-4">
         <div>
-          <h2 className="text-2xl font-semibold text-card-foreground mb-3">{title}</h2>
           {/* Por ahora todos los cursos son webinar */}
           <div className="w-fit mb-4 px-2 py-1 bg-primary text-primary-foreground rounded-full text-xs shadow-md">
             webinar

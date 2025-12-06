@@ -26,9 +26,12 @@ export default async function ChapterCoursePage({
 
   const isPurchasedCourse = user ? await getIsPurchasedCourse(user.id, infoCourse.id) : false;
 
-  const videoUrl = infoCourse.chapters.find(
+  const currentChapter = infoCourse.chapters.find(
     (chapter) => chapter.id === chapterCourse
-  )?.videoUrl;
+  );
+
+  const videoUrl = currentChapter?.videoUrl;
+  const resources = (currentChapter as typeof currentChapter & { resources?: Array<{ url: string; name: string; type?: string; size?: number }> | null })?.resources;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -39,6 +42,7 @@ export default async function ChapterCoursePage({
           userProgress={userProgress}
           purchaseCourse={isPurchasedCourse}
           videoUrl={videoUrl}
+          resources={resources}
         />
 
         <ChaptersCourse
