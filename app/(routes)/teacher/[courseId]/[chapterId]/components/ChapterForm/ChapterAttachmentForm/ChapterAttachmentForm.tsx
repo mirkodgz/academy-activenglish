@@ -442,12 +442,20 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                 endpoint="chapterDocument"
                 input={{ courseId, chapterId }}
                 onClientUploadComplete={async (res) => {
-                  console.log("=== UPLOAD COMPLETE (DOCUMENTS) ===");
+                  console.log("=== ✅ UPLOAD COMPLETE CALLBACK EJECUTADO (DOCUMENTS) ===");
                   console.log("Full response:", JSON.stringify(res, null, 2));
                   console.log("Response type:", typeof res);
                   console.log("Is array:", Array.isArray(res));
                   
                   setUploadingFiles([]);
+                  
+                  // Si el callback se ejecuta, significa que el archivo se subió correctamente
+                  // Pero necesitamos verificar que res no sea null/undefined
+                  if (!res) {
+                    console.error("❌ Response is null or undefined in onClientUploadComplete");
+                    toast.error("Errore: risposta vuota da UploadThing");
+                    return;
+                  }
                   
                   try {
                     if (!res) {
@@ -586,9 +594,10 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   if (progress === 100) {
                     console.log("Upload progress reached 100%, waiting for callback...");
                     
-                    // Esperar 3 segundos para que el servidor guarde y el callback se ejecute
+                    // Esperar 2 segundos para que el callback se ejecute
                     setTimeout(async () => {
                       try {
+                        // Primero intentar obtener recursos del servidor
                         console.log("Polling server for uploaded files (fallback)...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
                         
@@ -604,19 +613,24 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                             setUploadingFiles([]);
                             toast.success("File caricato con successo!");
                             router.refresh();
-                          } else if (serverResources.length === resources.length && serverResources.length > 0) {
-                            // Si tienen la misma cantidad pero pueden ser diferentes, actualizar de todas formas
-                            console.log("Resources count matches, but updating to ensure sync");
-                            setResources(serverResources);
-                            setUploadingFiles([]);
+                            return;
                           }
-                        } else {
-                          console.log("No resources in server response");
                         }
+                        
+                        // Si no hay recursos nuevos en el servidor, el callback del servidor no se ejecutó
+                        // En este caso, necesitamos obtener la URL del archivo desde UploadThing
+                        // O hacer que el usuario haga clic en "Salva" para guardar manualmente
+                        console.log("⚠️ Server callback did not execute. File uploaded but not saved to DB.");
+                        console.log("💡 User should click 'Salva' button to save the file, or we need to get the file URL from UploadThing");
+                        
+                        // Mostrar mensaje al usuario
+                        toast.info("File caricato su UploadThing. Clicca 'Salva' per salvare nella base di dati.");
+                        setUploadingFiles([]);
                       } catch (error) {
                         console.error("Error polling server for resources:", error);
+                        setUploadingFiles([]);
                       }
-                    }, 3000); // Aumentar a 3 segundos para dar más tiempo al servidor
+                    }, 2000);
                   }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
@@ -846,9 +860,10 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                   if (progress === 100) {
                     console.log("Upload progress reached 100%, waiting for callback...");
                     
-                    // Esperar 3 segundos para que el servidor guarde y el callback se ejecute
+                    // Esperar 2 segundos para que el callback se ejecute
                     setTimeout(async () => {
                       try {
+                        // Primero intentar obtener recursos del servidor
                         console.log("Polling server for uploaded files (fallback)...");
                         const response = await axios.get(`/api/course/${courseId}/chapter/${chapterId}`);
                         
@@ -864,19 +879,22 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                             setUploadingFiles([]);
                             toast.success("Immagine caricata con successo!");
                             router.refresh();
-                          } else if (serverResources.length === resources.length && serverResources.length > 0) {
-                            // Si tienen la misma cantidad pero pueden ser diferentes, actualizar de todas formas
-                            console.log("Resources count matches, but updating to ensure sync");
-                            setResources(serverResources);
-                            setUploadingFiles([]);
+                            return;
                           }
-                        } else {
-                          console.log("No resources in server response");
                         }
+                        
+                        // Si no hay recursos nuevos en el servidor, el callback del servidor no se ejecutó
+                        console.log("⚠️ Server callback did not execute. File uploaded but not saved to DB.");
+                        console.log("💡 User should click 'Salva' button to save the file, or we need to get the file URL from UploadThing");
+                        
+                        // Mostrar mensaje al usuario
+                        toast.info("File caricato su UploadThing. Clicca 'Salva' per salvare nella base di dati.");
+                        setUploadingFiles([]);
                       } catch (error) {
                         console.error("Error polling server for resources:", error);
+                        setUploadingFiles([]);
                       }
-                    }, 3000); // Aumentar a 3 segundos para dar más tiempo al servidor
+                    }, 2000);
                   }
                 }}
                 className="w-full ut-button:bg-transparent ut-button:border-none ut-button:shadow-none ut-button:hover:bg-transparent ut-button:text-foreground ut-button:w-full ut-button:min-h-[120px] ut-button:flex ut-button:flex-col ut-button:items-center ut-button:justify-center ut-button:gap-2 ut-button:cursor-pointer ut-allowed-content:hidden ut-button:p-0 ut-button:relative ut-button:z-10"
