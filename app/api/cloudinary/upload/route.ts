@@ -43,12 +43,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Determinar el tipo de recurso basado en el tipo de archivo
-    let resourceType: "image" | "raw" | "video" | "auto" = "auto";
+    // Determinar el tipo de recurso basado en la extensión del archivo (como el otro sistema)
+    const fileExtension = file.name.toLowerCase().split('.').pop() || '';
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+    const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(fileExtension);
     
-    if (file.type.startsWith("image/")) {
+    // Siempre especificar 'image' o 'raw', nunca 'auto'
+    let resourceType: "image" | "raw" | "video" = "raw";
+    
+    if (isImage) {
       resourceType = "image";
-    } else if (file.type.startsWith("video/")) {
+    } else if (isVideo) {
       resourceType = "video";
     } else {
       // PDFs, documentos Word, Excel, etc. se suben como "raw"
@@ -66,7 +71,7 @@ export async function POST(req: Request) {
     // Preparar opciones de upload
     const uploadOptions: {
       folder: string;
-      resource_type: "image" | "raw" | "video" | "auto";
+      resource_type: "image" | "raw" | "video";
       use_filename?: boolean;
       unique_filename?: boolean;
       overwrite?: boolean;

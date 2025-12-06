@@ -46,6 +46,12 @@ function parseResources(resources: unknown): Array<{ url: string; name: string; 
   return [];
 }
 
+// Función helper para generar URL de descarga usando el proxy API
+function getDownloadUrl(url: string, filename: string): string {
+  // Usar el proxy API para manejar descargas de Cloudinary correctamente
+  return `/api/download-file?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+}
+
 export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
   const { chapterId, courseId, videoUrl, documentUrl, imageUrl, resources: initialResources } = props;
   
@@ -447,10 +453,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                           asChild
                         >
                           <a 
-                            href={resource.url} 
+                            href={getDownloadUrl(resource.url, resource.name || 'file')} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            download={resource.name || undefined}
                           >
                             <Download className="w-3 h-3" />
                           </a>
@@ -558,10 +563,9 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                           asChild
                         >
                           <a 
-                            href={resource.url} 
+                            href={getDownloadUrl(resource.url, resource.name || 'file')} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            download={resource.name || undefined}
                           >
                             <Download className="w-3 h-3" />
                           </a>
