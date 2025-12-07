@@ -98,17 +98,41 @@ export function CreateUserForm() {
     setIsLoading(true);
 
     try {
+      console.log("[CREATE_USER_FORM] Enviando datos:", {
+        email: values.email,
+        role: values.role,
+        courseId: values.courseId,
+        hasCourseId: !!values.courseId,
+      });
+
       const response = await axios.post("/api/users/create", values);
 
       if (response.status === 201) {
         toast.success("Utente creato con successo 🎉");
-        form.reset();
+        form.reset({
+          email: "",
+          password: "",
+          firstName: "",
+          lastName: "",
+          role: "STUDENT",
+          courseId: "",
+        });
         router.refresh();
       }
     } catch (error: unknown) {
+      console.error("[CREATE_USER_FORM] Error:", error);
+      
       const errorMessage = error && typeof error === 'object' && 'response' in error 
-        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        ? (error as { response?: { data?: { error?: string; details?: string } } }).response?.data?.error
         : undefined;
+      
+      const errorDetails = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { details?: string } } }).response?.data?.details
+        : undefined;
+      
+      console.error("[CREATE_USER_FORM] Error message:", errorMessage);
+      console.error("[CREATE_USER_FORM] Error details:", errorDetails);
+      
       toast.error(errorMessage || "Errore durante la creazione dell'utente");
     } finally {
       setIsLoading(false);

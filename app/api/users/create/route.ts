@@ -64,18 +64,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // Si se proporciona un curso, verificar que existe
+    // Si se proporciona un curso, verificar que existe ANTES de crear el usuario
+    let coursePrice = 0;
     if (validCourseId) {
       const course = await prisma.course.findUnique({
         where: { id: courseId },
+        select: { id: true, price: true },
       });
 
       if (!course) {
+        console.error(`[CREATE_USER] Curso no encontrado: ${courseId}`);
         return NextResponse.json(
-          { error: "Corso non trovato" },
+          { error: `Corso non trovato con ID: ${courseId}` },
           { status: 404 }
         );
       }
+      
+      // Calcular el precio del curso
+      coursePrice = course.price 
+        ? parseFloat(course.price.replace(",", ".")) 
+        : 0;
+      
+      console.log(`[CREATE_USER] Curso encontrado: ${course.id}, Precio: ${coursePrice}`);
     }
 
     // Verificar si el usuario ya existe
@@ -114,45 +124,44 @@ export async function POST(req: Request) {
 
     // Si es estudiante y se proporcionó un curso, crear la compra (Purchase)
     if (finalRole === "STUDENT" && validCourseId) {
-      console.log(`[CREATE_USER] Creando Purchase para estudiante ${user.id} con curso ${validCourseId}`);
+      console.log(`[CREATE_USER] Creando Purchase para estudiante ${user.id} con curso ${validCourseId}, precio: ${coursePrice}`);
       
-      // Obtener el precio del curso (o 0 si no tiene precio)
-      const course = await prisma.course.findUnique({
-        where: { id: validCourseId },
-        select: { price: true },
-      });
-
-      if (!course) {
-        console.error(`[CREATE_USER] Error: Curso ${validCourseId} no encontrado al crear Purchase`);
-        return NextResponse.json(
-          { error: `Corso ${validCourseId} non trovato` },
-          { status: 404 }
-        );
-      }
-
-      const coursePrice = course?.price 
-        ? parseFloat(course.price.replace(",", ".")) 
-        : 0;
-
       try {
-        // Crear la compra
-        const purchase = await prisma.purchase.create({
-          data: {
-            userId: user.id,
-            courseId: validCourseId,
-            price: coursePrice,
+        // Verificar si ya existe una compra para este usuario y curso
+        const existingPurchase = await prisma.purchase.findUnique({
+          where: {
+            userId_courseId: {
+              userId: user.id,
+              courseId: validCourseId,
+            },
           },
         });
-        console.log(`[CREATE_USER] Purchase creado exitosamente:`, purchase.id);
+
+        if (existingPurchase) {
+          console.log(`[CREATE_USER] Purchase ya existe para este usuario y curso. ID: ${existingPurchase.id}`);
+        } else {
+          // Crear la compra
+          const purchase = await prisma.purchase.create({
+            data: {
+              userId: user.id,
+              courseId: validCourseId,
+              price: coursePrice,
+            },
+          });
+          console.log(`[CREATE_USER] Purchase creado exitosamente. ID: ${purchase.id}`);
+        }
       } catch (purchaseError: unknown) {
         console.error(`[CREATE_USER] Error al crear Purchase:`, purchaseError);
-        // Si el error es por Purchase duplicado, está bien (ya existe)
-        const error = purchaseError as { code?: string };
-        if (error?.code !== 'P2002') {
-          // Si no es error de duplicado, lanzar error
-          throw purchaseError;
+        const error = purchaseError as { code?: string; message?: string };
+        
+        // Si el error es por Purchase duplicado (P2002), está bien (ya existe)
+        if (error?.code === 'P2002') {
+          console.log(`[CREATE_USER] Purchase duplicado detectado, continuando...`);
         } else {
-          console.log(`[CREATE_USER] Purchase ya existe, continuando...`);
+          // Si es otro tipo de error, loguearlo pero no fallar la creación del usuario
+          console.error(`[CREATE_USER] Error no crítico al crear Purchase:`, error?.message || String(purchaseError));
+          // No lanzamos el error para que el usuario se cree aunque falle el Purchase
+          // El admin puede crear el Purchase manualmente después si es necesario
         }
       }
     } else {
@@ -168,9 +177,29 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("[CREATE_USER]", error);
+    console.error("[CREATE_USER] Error completo:", error);
+    console.error("[CREATE_USER] Stack trace:", error instanceof Error ? error.stack : "No stack trace");
+    
+    // Proporcionar mensaje de error más específico
+    let errorMessage = "Errore durante la creazione dell'utente";
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error("[CREATE_USER] Error message:", errorMessage);
+      
+      // Si es un error de Prisma, proporcionar más detalles
+      if (error.message.includes("Unique constraint")) {
+        errorMessage = "Un utente con questo email esiste già";
+      } else if (error.message.includes("Foreign key constraint")) {
+        errorMessage = "Errore: Il corso selezionato non esiste o non è valido";
+      }
+    }
+    
     return NextResponse.json(
-      { error: "Errore durante la creazione dell'utente" },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : undefined,
+      },
       { status: 500 }
     );
   }
