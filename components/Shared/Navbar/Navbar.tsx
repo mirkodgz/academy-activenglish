@@ -8,7 +8,7 @@ import { useSession, signOut } from "next-auth/react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+// import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +72,7 @@ export function Navbar() {
         </div>
 
         {/* Toggle de tema */}
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
 
         {/* Icono de notificaciones - Comentado temporalmente */}
         {/* <Button variant="outline">

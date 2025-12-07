@@ -255,3 +255,4 @@ Una vez que funcione en local:
 - **Resend gratuito**: 100 emails/día, suficiente para testing.
 - **Testing en producción**: Una vez desplegado, puedes probar directamente sin ngrok.
 
+
