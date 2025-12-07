@@ -6,16 +6,22 @@ export const getPurchaseCourseById = async (
   courseId: string
 ): Promise<boolean> => {
   try {
-    // Si el usuario es estudiante, permitir acceso a todos los cursos publicados
+    // Si el usuario es estudiante, verificar que tenga Purchase del curso
     const userIsStudent = await isStudent();
     if (userIsStudent) {
-      const course = await prisma.course.findUnique({
+      const purchase = await prisma.purchase.findUnique({
         where: {
-          id: courseId,
+          userId_courseId: {
+            userId,
+            courseId,
+          },
+        },
+        include: {
+          course: true,
         },
       });
-      // Si el curso está publicado, el estudiante tiene acceso
-      return course?.isPublished || false;
+      // El estudiante tiene acceso solo si tiene Purchase y el curso está publicado
+      return purchase ? (purchase.course.isPublished || false) : false;
     }
 
     // Para otros roles, verificar si tienen compra

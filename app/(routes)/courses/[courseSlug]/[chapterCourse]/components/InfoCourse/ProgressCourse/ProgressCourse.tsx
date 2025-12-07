@@ -11,12 +11,6 @@ import { Button } from "@/components/ui/button";
 import { ProgressCourseProps } from "./ProgressCourse.types";
 import { toast } from "sonner";
 
-// Función helper para generar URL de descarga usando el proxy API
-function getDownloadUrl(url: string, filename: string): string {
-  // Usar el proxy API para manejar descargas de Cloudinary correctamente
-  return `/api/download-file?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-}
-
 export function ProgressCourse(props: ProgressCourseProps) {
   const { userProgress, chapterCourseId, infoCourse, resources } = props;
   const { id, slug, chapters } = infoCourse;
@@ -118,7 +112,7 @@ export function ProgressCourse(props: ProgressCourseProps) {
                   className="text-xs"
                 >
                   <a
-                    href={getDownloadUrl(resource.url, resource.name || 'file')}
+                    href={resource.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1"

@@ -7,7 +7,7 @@ import { Footer, Navbar } from "@/components/Shared";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthRoute = pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up");
+  const isAuthRoute = pathname?.startsWith("/sign-in") || pathname?.startsWith("/sign-up") || pathname?.startsWith("/set-password");
 
   if (isAuthRoute) {
     // Para rutas de autenticación, solo mostrar el contenido sin sidebar/navbar

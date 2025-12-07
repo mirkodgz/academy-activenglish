@@ -17,7 +17,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password, firstName, lastName, role } = await req.json();
+    const { email, password, firstName, lastName, role, courseId } = await req.json();
+    
+    // Debug logging
+    console.log(`[CREATE_USER] Datos recibidos:`, {
+      email,
+      role,
+      courseId,
+      courseIdType: typeof courseId,
+      courseIdLength: courseId?.length,
+      hasPassword: !!password,
+    });
 
     // Validaciones
     if (!email || !password) {
@@ -42,6 +52,32 @@ export async function POST(req: Request) {
       );
     }
 
+    // Si es estudiante, validar que se haya proporcionado un curso
+    // courseId puede ser string vacío "", así que verificamos también eso
+    const finalRole = (role as UserRole) || "STUDENT";
+    const validCourseId = courseId && courseId.trim() !== "";
+    
+    if (finalRole === "STUDENT" && !validCourseId) {
+      return NextResponse.json(
+        { error: "Il corso è obbligatorio per gli studenti" },
+        { status: 400 }
+      );
+    }
+
+    // Si se proporciona un curso, verificar que existe
+    if (validCourseId) {
+      const course = await prisma.course.findUnique({
+        where: { id: courseId },
+      });
+
+      if (!course) {
+        return NextResponse.json(
+          { error: "Corso non trovato" },
+          { status: 404 }
+        );
+      }
+    }
+
     // Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -64,7 +100,7 @@ export async function POST(req: Request) {
         password: hashedPassword,
         firstName: firstName || null,
         lastName: lastName || null,
-        role: (role as UserRole) || "STUDENT",
+        role: finalRole,
       },
       select: {
         id: true,
@@ -76,8 +112,59 @@ export async function POST(req: Request) {
       },
     });
 
+    // Si es estudiante y se proporcionó un curso, crear la compra (Purchase)
+    if (finalRole === "STUDENT" && validCourseId) {
+      console.log(`[CREATE_USER] Creando Purchase para estudiante ${user.id} con curso ${validCourseId}`);
+      
+      // Obtener el precio del curso (o 0 si no tiene precio)
+      const course = await prisma.course.findUnique({
+        where: { id: validCourseId },
+        select: { price: true },
+      });
+
+      if (!course) {
+        console.error(`[CREATE_USER] Error: Curso ${validCourseId} no encontrado al crear Purchase`);
+        return NextResponse.json(
+          { error: `Corso ${validCourseId} non trovato` },
+          { status: 404 }
+        );
+      }
+
+      const coursePrice = course?.price 
+        ? parseFloat(course.price.replace(",", ".")) 
+        : 0;
+
+      try {
+        // Crear la compra
+        const purchase = await prisma.purchase.create({
+          data: {
+            userId: user.id,
+            courseId: validCourseId,
+            price: coursePrice,
+          },
+        });
+        console.log(`[CREATE_USER] Purchase creado exitosamente:`, purchase.id);
+      } catch (purchaseError: unknown) {
+        console.error(`[CREATE_USER] Error al crear Purchase:`, purchaseError);
+        // Si el error es por Purchase duplicado, está bien (ya existe)
+        const error = purchaseError as { code?: string };
+        if (error?.code !== 'P2002') {
+          // Si no es error de duplicado, lanzar error
+          throw purchaseError;
+        } else {
+          console.log(`[CREATE_USER] Purchase ya existe, continuando...`);
+        }
+      }
+    } else {
+      console.log(`[CREATE_USER] No se crea Purchase - Role: ${finalRole}, CourseId válido: ${validCourseId}`);
+    }
+
     return NextResponse.json(
-      { message: "Utente creato con successo", user },
+      { 
+        message: "Utente creato con successo", 
+        user,
+        purchaseCreated: role === "STUDENT" && courseId ? true : false,
+      },
       { status: 201 }
     );
   } catch (error) {

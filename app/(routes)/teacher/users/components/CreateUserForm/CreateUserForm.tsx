@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { UserPlus } from "lucide-react";
+import { UserPlus, BookOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,12 +37,30 @@ const formSchema = z.object({
   role: z.enum(["ADMIN", "STUDENT"], {
     required_error: "Seleziona un ruolo",
   }),
+  courseId: z.string().optional(),
+}).refine((data) => {
+  // Si es estudiante, el curso es obligatorio
+  if (data.role === "STUDENT" && !data.courseId) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Il corso è obbligatorio per gli studenti",
+  path: ["courseId"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface Course {
+  id: string;
+  title: string;
+  slug: string;
+}
+
 export function CreateUserForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
   const router = useRouter();
 
   const form = useForm<FormValues>({
@@ -53,8 +71,28 @@ export function CreateUserForm() {
       firstName: "",
       lastName: "",
       role: "STUDENT",
+      courseId: "",
     },
   });
+
+  const selectedRole = form.watch("role");
+
+  // Cargar cursos al montar el componente
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoadingCourses(true);
+        const response = await axios.get("/api/courses");
+        setCourses(response.data.courses || []);
+      } catch {
+        toast.error("Errore durante il caricamento dei corsi");
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
@@ -161,7 +199,13 @@ export function CreateUserForm() {
                 <FormItem>
                   <FormLabel>Ruolo *</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Si cambia a ADMIN, limpiar el curso seleccionado
+                      if (value === "ADMIN") {
+                        form.setValue("courseId", "");
+                      }
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -181,6 +225,44 @@ export function CreateUserForm() {
                 </FormItem>
               )}
             />
+
+            {/* Campo de curso - Solo visible para estudiantes */}
+            {selectedRole === "STUDENT" && (
+              <FormField
+                control={form.control}
+                name="courseId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Corso Assegnato *
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isLoadingCourses}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={isLoadingCourses ? "Caricamento corsi..." : "Seleziona un corso"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Il corso a cui avrà accesso questo studente
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
 
           <div className="flex justify-end gap-4 pt-4 border-t">

@@ -1,8 +1,8 @@
 import {
   BookOpen,
-  ChartArea,
   GraduationCap,
   House,
+  Mail,
   User,
   Users,
 } from "lucide-react";
@@ -55,15 +55,21 @@ export const routesTeacher = [
     url: "/teacher",
     icon: GraduationCap,
   },
-  {
-    title: "Analitiche",
-    url: "/teacher/analytics",
-    icon: ChartArea,
-  },
+  // Comentado - Analitiche oculto por ahora
+  // {
+  //   title: "Analitiche",
+  //   url: "/teacher/analytics",
+  //   icon: ChartArea,
+  // },
   {
     title: "Gestione Utenti",
     url: "/teacher/users",
     icon: Users,
+  },
+  {
+    title: "Invia Email",
+    url: "/teacher/send-emails",
+    icon: Mail,
   },
   // Comentado - Certificati oculto por ahora
   // {

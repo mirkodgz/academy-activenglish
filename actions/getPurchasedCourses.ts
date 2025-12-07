@@ -14,10 +14,15 @@ export const getPurchasedCourses = async (): Promise<
   try {
     const userIsStudent = await isStudent();
 
-    // Si es estudiante, mostrar TODOS los cursos publicados
+    // Si es estudiante, mostrar SOLO los cursos que ha comprado (Purchase)
     if (userIsStudent) {
-      const allPublishedCourses = await prisma.course.findMany({
+      const purchasedCourses = await prisma.course.findMany({
         where: {
+          purchases: {
+            some: {
+              userId: user.id,
+            },
+          },
           isPublished: true,
         },
         include: {
@@ -35,7 +40,7 @@ export const getPurchasedCourses = async (): Promise<
         },
       });
 
-      return allPublishedCourses;
+      return purchasedCourses;
     }
 
     // Para otros roles (ADMIN), mostrar solo los cursos comprados

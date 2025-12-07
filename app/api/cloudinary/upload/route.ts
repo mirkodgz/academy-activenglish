@@ -34,30 +34,12 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const folder = (formData.get("folder") as string) || "activenglish/courses";
 
     if (!file) {
       return NextResponse.json(
         { error: "Nessun file fornito" },
         { status: 400 }
       );
-    }
-
-    // Determinar el tipo de recurso basado en la extensión del archivo (como el otro sistema)
-    const fileExtension = file.name.toLowerCase().split('.').pop() || '';
-    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
-    const isVideo = ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(fileExtension);
-    
-    // Siempre especificar 'image' o 'raw', nunca 'auto'
-    let resourceType: "image" | "raw" | "video" = "raw";
-    
-    if (isImage) {
-      resourceType = "image";
-    } else if (isVideo) {
-      resourceType = "video";
-    } else {
-      // PDFs, documentos Word, Excel, etc. se suben como "raw"
-      resourceType = "raw";
     }
 
     // Convertir File a buffer
@@ -68,34 +50,14 @@ export async function POST(req: Request) {
     const base64 = buffer.toString("base64");
     const dataURI = `data:${file.type};base64,${base64}`;
 
-    // Preparar opciones de upload
-    const uploadOptions: {
-      folder: string;
-      resource_type: "image" | "raw" | "video";
-      use_filename?: boolean;
-      unique_filename?: boolean;
-      overwrite?: boolean;
-    } = {
-      folder: folder,
-      resource_type: resourceType,
-    };
-
-    // Para documentos raw, preservar el nombre original del archivo
-    if (resourceType === "raw") {
-      // Usar el nombre del archivo original
-      uploadOptions.use_filename = true;
-      uploadOptions.unique_filename = false;
-      uploadOptions.overwrite = false; // No sobrescribir si existe
-    } else {
-      uploadOptions.use_filename = true;
-      uploadOptions.unique_filename = true;
-    }
-
     // Subir a Cloudinary
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
         dataURI,
-        uploadOptions,
+        {
+          folder: "activenglish/courses",
+          resource_type: "image",
+        },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
@@ -106,21 +68,16 @@ export async function POST(req: Request) {
     interface CloudinaryResult {
       secure_url: string;
       public_id: string;
-      bytes?: number;
-      format?: string;
     }
     
     return NextResponse.json({
       url: (result as CloudinaryResult).secure_url,
       public_id: (result as CloudinaryResult).public_id,
-      size: (result as CloudinaryResult).bytes || file.size,
-      type: file.type,
-      name: file.name,
     });
   } catch (error) {
     console.error("Error uploading to Cloudinary:", error);
     return NextResponse.json(
-      { error: "Errore durante il caricamento del file" },
+      { error: "Errore durante il caricamento dell'immagine" },
       { status: 500 }
     );
   }
