@@ -49,6 +49,55 @@ function isCloudinaryPlayerUrl(url: string): boolean {
   return /player\.cloudinary\.com/.test(url);
 }
 
+// Función para verificar si es una URL de Cloudflare Stream
+function isCloudflareStreamUrl(url: string): boolean {
+  return /cloudflarestream\.com|cloudflarestre\.com/.test(url);
+}
+
+// Función para obtener URL de embed de Cloudflare Stream
+function getCloudflareStreamEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  
+  // Si ya es una URL de iframe de Cloudflare Stream, devolverla tal cual
+  if (url.includes('/iframe')) {
+    return url;
+  }
+  
+  // Si es una URL HLS o DASH, extraer el Video ID y construir URL de iframe
+  // Formato HLS: https://customer-<CODE>.cloudflarestream.com/<VIDEO_ID>/manifest/video.m3u8
+  // Formato DASH: https://customer-<CODE>.cloudflarestream.com/<VIDEO_ID>/manifest/video.mpd
+  // Formato iframe: https://customer-<CODE>.cloudflarestream.com/<VIDEO_ID>/iframe
+  
+  // Extraer el dominio base y el customer code
+  const domainMatch = url.match(/(https?:\/\/customer-([^.]+)\.cloudflare[^\/]+)/);
+  if (domainMatch) {
+    const customerCode = domainMatch[2];
+    
+    // Extraer el Video ID (está después del dominio y antes de /manifest o /iframe)
+    const videoIdMatch = url.match(/cloudflare[^\/]+\/([^\/]+)/);
+    if (videoIdMatch && videoIdMatch[1]) {
+      const videoId = videoIdMatch[1];
+      return `https://customer-${customerCode}.cloudflarestream.com/${videoId}/iframe`;
+    }
+  }
+  
+  // Fallback: intentar extraer directamente del patrón común
+  const fallbackMatch = url.match(/(https?:\/\/[^\/]+)\/([^\/]+)/);
+  if (fallbackMatch) {
+    const baseUrl = fallbackMatch[1].replace(/\/manifest\/.*$/, '');
+    const videoId = fallbackMatch[2];
+    return `${baseUrl}/${videoId}/iframe`;
+  }
+  
+  return null;
+}
+
+// Función para verificar si es una URL HLS/DASH de Cloudflare Stream
+function isCloudflareStreamManifestUrl(url: string): boolean {
+  return /cloudflarestream\.com.*\/manifest\/(video\.m3u8|video\.mpd)/.test(url) || 
+         /cloudflarestre\.com.*\/manifest\/(video\.m3u8|video\.mpd)/.test(url);
+}
+
 export function VideoCourse(props: VideoCourseProps) {
   const { videoUrl } = props;
 
@@ -111,6 +160,44 @@ export function VideoCourse(props: VideoCourseProps) {
         </div>
       </div>
     );
+  }
+
+  // Si es Cloudflare Stream, usar iframe embed
+  if (isCloudflareStreamUrl(videoUrl)) {
+    const embedUrl = getCloudflareStreamEmbedUrl(videoUrl);
+    if (embedUrl) {
+      return (
+        <div className="w-full rounded-md shadow-md overflow-hidden bg-black">
+          <div className="relative pb-[56.25%] h-0">
+            <iframe
+              src={embedUrl}
+              className="absolute top-0 left-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Video del curso"
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    // Si es una URL HLS/DASH manifest, usar reproductor HTML5 con soporte HLS
+    if (isCloudflareStreamManifestUrl(videoUrl)) {
+      return (
+        <div className="w-full rounded-md shadow-md overflow-hidden bg-black">
+          <video
+            src={videoUrl}
+            controls
+            className="w-full h-auto"
+            style={{ maxHeight: "600px" }}
+            crossOrigin="anonymous"
+          >
+            <source src={videoUrl} type={videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'application/dash+xml'} />
+            Tu navegador no soporta la reproducción de video.
+          </video>
+        </div>
+      );
+    }
   }
 
   // Si es una URL directa de video, usar tag video

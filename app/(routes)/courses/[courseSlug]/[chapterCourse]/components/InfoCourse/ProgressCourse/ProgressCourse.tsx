@@ -113,6 +113,7 @@ export function ProgressCourse(props: ProgressCourseProps) {
                 >
                   <a
                     href={resource.url}
+                    download={resource.name || "download"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1"

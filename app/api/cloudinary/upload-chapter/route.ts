@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     // Determinar resource_type y folder según el tipo
     let resourceType: "image" | "video" | "raw" = "image";
     let folder = "activenglish/chapters";
+    const fileName = file.name;
 
     if (type === "video") {
       resourceType = "video";
@@ -65,16 +66,32 @@ export async function POST(req: Request) {
       folder = "activenglish/chapters/images";
     }
 
+    // Configuración de upload según el tipo
+    const uploadOptions: {
+      folder: string;
+      resource_type: "image" | "video" | "raw";
+      use_filename?: boolean;
+      unique_filename?: boolean;
+      filename_override?: string;
+      format?: string;
+    } = {
+      folder: folder,
+      resource_type: resourceType,
+    };
+
+    // Para documentos, mantener el nombre original y formato
+    if (type === "document") {
+      uploadOptions.use_filename = true;
+      uploadOptions.unique_filename = false;
+      uploadOptions.filename_override = fileName;
+      // No especificar format para documentos raw, Cloudinary lo detecta automáticamente
+    }
+
     // Subir a Cloudinary
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
         dataURI,
-        {
-          folder: folder,
-          resource_type: resourceType,
-          // Para documentos, mantener el formato original
-          ...(type === "document" && { format: "auto" }),
-        },
+        uploadOptions,
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
@@ -85,11 +102,21 @@ export async function POST(req: Request) {
     interface CloudinaryResult {
       secure_url: string;
       public_id: string;
+      format?: string;
+      original_filename?: string;
     }
     
+    const cloudinaryResult = result as CloudinaryResult;
+    
+    // Para documentos, usar la URL normal de Cloudinary
+    // La descarga se manejará en el frontend con el atributo download del enlace
+    // O usando un endpoint proxy si es necesario
+    const downloadUrl = cloudinaryResult.secure_url;
+    
     return NextResponse.json({
-      url: (result as CloudinaryResult).secure_url,
-      public_id: (result as CloudinaryResult).public_id,
+      url: downloadUrl,
+      public_id: cloudinaryResult.public_id,
+      original_filename: cloudinaryResult.original_filename || fileName,
     });
   } catch (error: unknown) {
     console.error("Error uploading to Cloudinary:", error);

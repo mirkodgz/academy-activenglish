@@ -10,7 +10,7 @@ import { TitleBlock } from "../../../../components";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { UploadButton } from "@/utils/uploadthing";
+import { Input } from "@/components/ui/input";
 
 interface Resource {
   url: string;
@@ -28,6 +28,7 @@ interface ChapterResourcesFormProps {
 export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
   const { chapterId, courseId, resources: initialResources } = props;
   const [resources, setResources] = useState<Resource[]>(initialResources || []);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,19 +37,46 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
     }
   }, [initialResources]);
 
-  const handleUploadComplete = (res: Array<{ url: string; name?: string; size?: number }>) => {
-    if (res && res.length > 0) {
-      const newResources = res.map((file) => ({
-        url: file.url,
-        name: file.name || "Archivo sin nombre",
-        type: getFileType(file.url),
-        size: file.size || 0,
-      }));
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
 
+    setIsUploading(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        // Determinar tipo según extensión
+        const extension = file.name.split(".").pop()?.toLowerCase() || "";
+        const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
+        formData.append("type", isImage ? "image" : "document");
+
+        const response = await axios.post("/api/cloudinary/upload-chapter", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        return {
+          url: response.data.url,
+          name: file.name,
+          type: getFileType(response.data.url),
+          size: file.size,
+        };
+      });
+
+      const newResources = await Promise.all(uploadPromises);
       const updatedResources = [...resources, ...newResources];
       setResources(updatedResources);
       saveResources(updatedResources);
-      toast.success(`${newResources.length} risors${newResources.length > 1 ? "e" : "a"} aggiunt${newResources.length > 1 ? "e" : "a"}! 🔥`);
+      toast.success(`${newResources.length} risors${newResources.length > 1 ? "e" : "a"} aggiunt${newResources.length > 1 ? "e" : "a"} con Cloudinary! 🔥`);
+    } catch (error: unknown) {
+      console.error("Error uploading resources:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        : undefined;
+      toast.error(errorMessage || "Errore durante il caricamento");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -139,7 +167,12 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
                   size="sm"
                   asChild
                 >
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                  <a 
+                    href={resource.url}
+                    download={resource.name || "download"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Download className="w-4 h-4" />
                   </a>
                 </Button>
@@ -159,16 +192,19 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
       {/* Botón para subir nuevos recursos */}
       <div className="mt-4">
         <Label className="mb-2 block">Aggiungi risorse</Label>
-        <UploadButton
-          endpoint="chapterResources"
-          onClientUploadComplete={handleUploadComplete}
-          onUploadError={(error: Error) => {
-            toast.error(`Errore durante il caricamento: ${error.message}`);
-          }}
-          className="w-full ut-button:bg-primary ut-button:text-primary-foreground ut-button:hover:bg-primary/90"
+        <Input
+          type="file"
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+          multiple
+          onChange={(e) => handleFileUpload(e.target.files)}
+          disabled={isUploading}
+          className="cursor-pointer"
         />
+        {isUploading && (
+          <p className="text-xs text-muted-foreground mt-2">Caricamento in corso...</p>
+        )}
         <p className="text-xs text-muted-foreground mt-2">
-          Puoi caricare fino a 10 file alla volta (Immagini: 4MB, Documenti: 16MB)
+          Puoi caricare fino a 10 file alla volta (Immagini: 4MB, Documenti: 16MB) - Cloudinary
         </p>
       </div>
     </div>
