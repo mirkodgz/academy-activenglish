@@ -111,7 +111,7 @@ export async function GET(req: Request) {
       );
     }
 
-    console.log(`🔍 Validando token:`);
+    console.log(`[SET-PASSWORD] Validando token:`);
     console.log(`   Token recibido: ${token}`);
     console.log(`   Token preview: ${token.substring(0, 20)}...`);
     
@@ -122,7 +122,7 @@ export async function GET(req: Request) {
       },
     });
 
-    console.log(`📋 Token encontrado en BD: ${verificationToken ? "SÍ" : "NO"}`);
+    console.log(`[SET-PASSWORD] Token encontrado en BD: ${verificationToken ? "SÍ" : "NO"}`);
     
     if (!verificationToken) {
       // Buscar todos los tokens para debuggear
@@ -130,7 +130,7 @@ export async function GET(req: Request) {
         take: 10,
         orderBy: { expires: "desc" },
       });
-      console.log(`📊 Últimos 10 tokens en BD:`);
+      console.log(`[SET-PASSWORD] Últimos 10 tokens en BD:`);
       allTokens.forEach((t, index) => {
         console.log(`   ${index + 1}. Email: ${t.identifier}, Token: ${t.token}, Expira: ${t.expires.toISOString()}`);
         console.log(`      Token completo: ${t.token}`);
@@ -141,7 +141,7 @@ export async function GET(req: Request) {
       // Intentar buscar el token de forma más flexible (por si hay espacios o caracteres especiales)
       const trimmedToken = token.trim();
       const tokenWithoutSpaces = token.replace(/\s/g, '');
-      console.log(`🔍 Buscando variaciones del token:`);
+      console.log(`[SET-PASSWORD] Buscando variaciones del token:`);
       console.log(`   Token original: "${token}"`);
       console.log(`   Token trimmed: "${trimmedToken}"`);
       console.log(`   Token sin espacios: "${tokenWithoutSpaces}"`);
@@ -152,7 +152,7 @@ export async function GET(req: Request) {
           where: { token: trimmedToken },
         });
         if (trimmedVerificationToken) {
-          console.log(`✅ Token encontrado con trimmed!`);
+          console.log(`[SET-PASSWORD] Token encontrado con trimmed!`);
           return NextResponse.json({
             valid: true,
             email: trimmedVerificationToken.identifier,
@@ -170,7 +170,7 @@ export async function GET(req: Request) {
         orderBy: { expires: "desc" },
         take: 5,
       });
-      console.log(`📧 Últimos tokens por email:`, tokensForEmail.map(t => ({
+      console.log(`[SET-PASSWORD] Últimos tokens por email:`, tokensForEmail.map(t => ({
         email: t.identifier,
         token: t.token,
         expires: t.expires.toISOString(),
@@ -182,7 +182,7 @@ export async function GET(req: Request) {
       );
     }
     
-    console.log(`✅ Token encontrado:`);
+    console.log(`[SET-PASSWORD] Token encontrado:`);
     console.log(`   Email: ${verificationToken.identifier}`);
     console.log(`   Token en BD: ${verificationToken.token}`);
     console.log(`   Token coincide: ${verificationToken.token === token}`);

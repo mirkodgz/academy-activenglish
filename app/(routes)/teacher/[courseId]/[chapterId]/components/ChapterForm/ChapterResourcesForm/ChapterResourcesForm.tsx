@@ -68,7 +68,7 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
       const updatedResources = [...resources, ...newResources];
       setResources(updatedResources);
       saveResources(updatedResources);
-      toast.success(`${newResources.length} risors${newResources.length > 1 ? "e" : "a"} aggiunt${newResources.length > 1 ? "e" : "a"} con Cloudinary! 🔥`);
+      toast.success(`${newResources.length} risors${newResources.length > 1 ? "e" : "a"} aggiunt${newResources.length > 1 ? "e" : "a"} con Cloudinary!`);
     } catch (error: unknown) {
       console.error("Error uploading resources:", error);
       const errorMessage = error && typeof error === 'object' && 'response' in error 
@@ -95,7 +95,7 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
       router.refresh();
     } catch (error) {
       console.error("Error saving resources:", error);
-      toast.error("Errore durante il salvataggio delle risorse 😭");
+      toast.error("Errore durante il salvataggio delle risorse");
     }
   };
 
@@ -165,16 +165,44 @@ export function ChapterResourcesForm(props: ChapterResourcesFormProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  asChild
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    const proxyUrl = `/api/download-file?url=${encodeURIComponent(resource.url)}&filename=${encodeURIComponent(resource.name || "download")}`;
+                    try {
+                      const response = await axios.get(proxyUrl, { 
+                        responseType: 'blob',
+                        validateStatus: (status) => status < 500 
+                      });
+                      
+                      if (response.data?.useDirect) {
+                        // Crear descarga con URL firmada
+                        const downloadUrl = response.data.directUrl;
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = resource.name || "download";
+                        a.target = '_blank';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                      } else if (response.data instanceof Blob) {
+                        const url = window.URL.createObjectURL(response.data);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = resource.name || "download";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                      } else {
+                        window.open(resource.url, '_blank');
+                      }
+                    } catch (error) {
+                      console.error("Error fetching download proxy:", error);
+                      window.open(resource.url, '_blank');
+                    }
+                  }}
                 >
-                  <a 
-                    href={resource.url}
-                    download={resource.name || "download"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Download className="w-4 h-4" />
-                  </a>
+                  <Download className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"

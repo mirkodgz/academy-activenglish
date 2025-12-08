@@ -19,7 +19,7 @@ export function ExploreCourses() {
             <p className="text-balance max-w-2xl text-muted-foreground">
               La tua piattaforma di apprendimento online per migliorare le tue competenze. 
               Esplora contenuti di qualità, impara al tuo ritmo e raggiungi i tuoi obiettivi. 
-              Inizia il tuo percorso di crescita oggi stesso! 🚀
+              Inizia il tuo percorso di crescita oggi stesso!
             </p>
             <Button className="w-fit" onClick={() => router.push("/courses")}>
               Inizia

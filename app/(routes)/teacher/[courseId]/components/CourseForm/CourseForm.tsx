@@ -55,9 +55,9 @@ export function CourseForm(props: CourseFormProps) {
       };
       axios.patch(`/api/course/${course.id}`, valuesWithCategory);
 
-      toast("Corso aggiornato correttamente 🎉");
+      toast("Corso aggiornato correttamente");
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 

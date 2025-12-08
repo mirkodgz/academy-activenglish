@@ -76,10 +76,10 @@ export function CourseImage(props: CourseImageProps) {
       setImage(imageUrl);
       setIsEditing(false);
       router.refresh();
-      toast("Immagine aggiornata correttamente 🎉");
+      toast("Immagine aggiornata correttamente");
     } catch (error) {
       console.error("Error updating image:", error);
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 

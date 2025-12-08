@@ -155,11 +155,11 @@ export function SendEmailForm() {
         const { sent, failed, errors } = response.data;
         
         if (sent > 0) {
-          toast.success(`✅ ${sent} email inviate con successo!`);
+          toast.success(`${sent} email inviate con successo!`);
         }
         
         if (failed > 0) {
-          toast.warning(`⚠️ ${failed} email non inviate. Controlla i log per i dettagli.`);
+          toast.warning(`${failed} email non inviate. Controlla i log per i dettagli.`);
           if (errors && errors.length > 0) {
             console.error("Errori di invio:", errors);
           }
@@ -242,7 +242,7 @@ export function SendEmailForm() {
           {/* Información de estudiantes */}
           {studentInfo && studentInfo.studentCount === 0 && (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-md text-sm">
-              ⚠️ Nessuno studente ha acquistato questo corso. Seleziona un altro corso.
+              Nessuno studente ha acquistato questo corso. Seleziona un altro corso.
             </div>
           )}
 

@@ -7,7 +7,7 @@ const cloudinaryUrl = process.env.CLOUDINARY_URL;
 if (cloudinaryUrl) {
   cloudinary.config();
 } else {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dfm9igqy1";
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dskliu1ig";
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -53,17 +53,17 @@ export async function POST(req: Request) {
 
     // Determinar resource_type y folder según el tipo
     let resourceType: "image" | "video" | "raw" = "image";
-    let folder = "activenglish/chapters";
+    let folder = "activeacademy/chapters";
     const fileName = file.name;
 
     if (type === "video") {
       resourceType = "video";
-      folder = "activenglish/chapters/videos";
+      folder = "activeacademy/chapters/videos";
     } else if (type === "document") {
       resourceType = "raw"; // Para documentos PDF, DOC, etc.
-      folder = "activenglish/chapters/documents";
+      folder = "activeacademy/chapters/documents";
     } else {
-      folder = "activenglish/chapters/images";
+      folder = "activeacademy/chapters/images";
     }
 
     // Configuración de upload según el tipo
@@ -74,9 +74,15 @@ export async function POST(req: Request) {
       unique_filename?: boolean;
       filename_override?: string;
       format?: string;
+      access_mode?: string;
+      type?: string;
+      invalidate?: boolean;
     } = {
       folder: folder,
       resource_type: resourceType,
+      access_mode: 'public',
+      type: 'upload', // Tipo explícito de upload
+      invalidate: false, // No invalidar caché
     };
 
     // Para documentos, mantener el nombre original y formato
@@ -107,6 +113,37 @@ export async function POST(req: Request) {
     }
     
     const cloudinaryResult = result as CloudinaryResult;
+    
+    // Verificar que el archivo se subió correctamente y actualizar access_mode si es necesario
+    // A veces Cloudinary ignora access_mode durante upload, así que lo actualizamos explícitamente
+    if (type === "document") {
+      try {
+        console.log(`[UPLOAD-CHAPTER] Actualizando access_mode a público para: ${cloudinaryResult.public_id}`);
+        await new Promise((resolve) => {
+          cloudinary.uploader.explicit(
+            cloudinaryResult.public_id,
+            {
+              type: 'upload',
+              resource_type: 'raw',
+              access_mode: 'public',
+            },
+            (error, result) => {
+              if (error) {
+                console.error(`[UPLOAD-CHAPTER] Error actualizando access_mode:`, error);
+                // No rechazar, solo loggear el error y resolver
+                resolve(result);
+              } else {
+                console.log(`[UPLOAD-CHAPTER] Access_mode actualizado exitosamente`);
+                resolve(result);
+              }
+            }
+          );
+        });
+      } catch (error) {
+        console.error(`[UPLOAD-CHAPTER] Error al actualizar access_mode (no crítico):`, error);
+        // Continuar aunque falle, el archivo ya está subido
+      }
+    }
     
     // Para documentos, usar la URL normal de Cloudinary
     // La descarga se manejará en el frontend con el atributo download del enlace

@@ -118,11 +118,11 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
       await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, updateData);
 
-      toast(`${type === "video" ? "Video" : type === "document" ? "Documento" : "Immagine"} aggiornato 🔥`);
+      toast(`${type === "video" ? "Video" : type === "document" ? "Documento" : "Immagine"} aggiornato`);
       router.refresh();
       setIsEditing(false);
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 
@@ -258,7 +258,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
       onSubmit(result.url, "video");
       setUploadingFiles([]);
       setIsUploading(false);
-      toast.success("Video caricato con successo con Cloudinary! 🔥");
+        toast.success("Video caricato con successo con Cloudinary!");
     } catch (error: unknown) {
       console.error("Error uploading video:", error);
       const errorMessage = error && typeof error === 'object' && 'response' in error 
@@ -293,7 +293,7 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
       setActiveTab(null);
       setVideoUrlInput("");
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 
@@ -335,11 +335,11 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
 
       // Guardar todo (título, contenido y recursos)
       await axios.patch(`/api/course/${courseId}/chapter/${chapterId}`, updateData);
-      toast("Modulo salvato 🔥");
+      toast("Modulo salvato");
       router.refresh();
       setIsEditing(false);
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 
@@ -532,16 +532,47 @@ export function ChapterAttachmentForm(props: ChapterAttachmentFormProps) {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0 bg-background/90 hover:bg-background shadow-sm"
-                          asChild
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            const proxyUrl = `/api/download-file?url=${encodeURIComponent(resource.url)}&filename=${encodeURIComponent(resource.name || "download")}`;
+                            try {
+                              const response = await axios.get(proxyUrl, { 
+                                responseType: 'blob',
+                                validateStatus: (status) => status < 500 
+                              });
+                              
+                              if (response.data?.useDirect) {
+                                // Si el proxy dice usar directo, crear descarga con URL firmada
+                                const downloadUrl = response.data.directUrl;
+                                const a = document.createElement('a');
+                                a.href = downloadUrl;
+                                a.download = resource.name || "download";
+                                a.target = '_blank';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                              } else if (response.data instanceof Blob) {
+                                // Si recibimos un blob, crear descarga
+                                const url = window.URL.createObjectURL(response.data);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = resource.name || "download";
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } else {
+                                // Fallback: abrir URL directa
+                                window.open(resource.url, '_blank');
+                              }
+                            } catch (error) {
+                              console.error("Error fetching download proxy:", error);
+                              // Fallback a descarga directa si el proxy falla
+                              window.open(resource.url, '_blank');
+                            }
+                          }}
                         >
-                          <a 
-                            href={resource.url}
-                            download={resource.name || "download"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </a>
+                          <Download className="w-3.5 h-3.5" />
                         </Button>
                         <Button
                           variant="ghost"

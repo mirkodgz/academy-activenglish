@@ -65,10 +65,10 @@ export function ChaptersBlock(props: ChaptersBlockProps) {
       await axios.put(`/api/course/${idCourse}/chapter/reorder`, {
         list: updateData,
       });
-      toast("Ordine aggiornato 🎉");
+      toast("Ordine aggiornato");
       router.refresh();
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     } finally {
       setIsUpdating(false);
     }

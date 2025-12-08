@@ -22,10 +22,10 @@ export function HeaderCourse(props: HeaderCourseProps) {
         isPublished: state,
       });
 
-      toast(state ? "Corso pubblicato 🚀" : "Corso nascosto 👀");
+      toast(state ? "Corso pubblicato" : "Corso nascosto");
       router.refresh();
     } catch {
-      toast("Ops, qualcosa è andato storto 😭");
+      toast("Ops, qualcosa è andato storto");
     }
 
     setIsLoading(false);
@@ -33,7 +33,7 @@ export function HeaderCourse(props: HeaderCourseProps) {
 
   const removeCourse = async () => {
     axios.delete(`/api/course/${idCourse}`);
-    toast("Corso eliminato correttamente 🎉");
+    toast("Corso eliminato correttamente");
 
     router.push("/teacher");
   };

@@ -108,7 +108,7 @@ export function CreateUserForm() {
       const response = await axios.post("/api/users/create", values);
 
       if (response.status === 201) {
-        toast.success("Utente creato con successo 🎉");
+        toast.success("Utente creato con successo");
         form.reset({
           email: "",
           password: "",

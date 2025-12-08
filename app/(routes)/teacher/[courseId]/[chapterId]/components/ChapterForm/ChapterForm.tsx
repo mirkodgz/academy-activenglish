@@ -74,13 +74,13 @@ export function ChapterForm(props: ChapterFormProps) {
         isPublished: state,
       });
 
-      toast(state ? "Modulo pubblicato 🔥" : "Modulo nascosto ✌🏽");
+      toast(state ? "Modulo pubblicato" : "Modulo nascosto");
 
       router.refresh();
     } catch (error) {
       console.log(error);
 
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 
@@ -89,7 +89,7 @@ export function ChapterForm(props: ChapterFormProps) {
 
     router.push(`/teacher/${courseId}`);
 
-    toast("Modulo eliminato 🔥");
+    toast("Modulo eliminato");
   };
 
   return (

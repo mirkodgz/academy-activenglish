@@ -108,7 +108,7 @@ export function EditUserDialog({
       const response = await axios.patch(`/api/users/${user.id}`, updateData);
 
       if (response.status === 200) {
-        toast.success("Utente aggiornato con successo 🎉");
+        toast.success("Utente aggiornato con successo");
         onSuccess();
         onOpenChange(false);
       }

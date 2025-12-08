@@ -76,7 +76,7 @@ export function EditProfileForm({ user, onSuccess }: EditProfileFormProps) {
       const response = await axios.patch("/api/profile", updateData);
 
       if (response.status === 200) {
-        toast.success("Profilo aggiornato con successo 🎉");
+        toast.success("Profilo aggiornato con successo");
         router.refresh(); // Refrescar la página para mostrar los datos actualizados
         onSuccess?.(); // Cerrar el modo de edición
       }

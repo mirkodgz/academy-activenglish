@@ -29,7 +29,7 @@ export function CoursePrice(props: CoursePriceProps) {
       price: price,
     });
 
-    toast("Prezzo aggiornato 🔥");
+    toast("Prezzo aggiornato");
   };
 
   return (

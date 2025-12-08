@@ -36,10 +36,10 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
     // Por ahora todos los cursos son gratuitos
     try {
       await axios.post(`/api/course/${id}/enroll`);
-      toast("Iscrizione riuscita 🎉");
+      toast("Iscrizione riuscita");
       router.push(`/courses/${slug}/${chapters[0].id}`);
     } catch (error) {
-      toast.error("Errore nell'iscrizione 😭");
+      toast.error("Errore nell'iscrizione");
       console.error(error);
     } finally {
       setIsLoading(false);

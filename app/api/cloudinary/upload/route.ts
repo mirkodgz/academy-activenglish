@@ -12,7 +12,7 @@ if (cloudinaryUrl) {
 } else {
   console.log("CLOUDINARY_URL no encontrada, usando variables individuales");
   // Fallback a variables individuales
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dfm9igqy1";
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dskliu1ig";
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       cloudinary.uploader.upload(
         dataURI,
         {
-          folder: "activenglish/courses",
+          folder: "activeacademy/courses",
           resource_type: "image",
         },
         (error, result) => {

@@ -32,7 +32,7 @@ export function Actions(props: ActionsProps) {
 
   const deleteCourse = () => {
     axios.delete(`/api/course/${courseId}`);
-    toast("Curso eliminado correctamente 🎉");
+    toast("Curso eliminado correctamente");
 
     router.refresh();
   };

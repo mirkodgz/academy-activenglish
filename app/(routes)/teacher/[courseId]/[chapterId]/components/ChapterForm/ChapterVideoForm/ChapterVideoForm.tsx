@@ -26,11 +26,11 @@ export function ChapterVideoForm(props: ChapterVideoFormProps) {
         videoUrl: url,
       });
 
-      toast("Video aggiornato 🔥");
+      toast("Video aggiornato");
 
       router.refresh();
     } catch {
-      toast.error("Ops, qualcosa è andato storto 😭");
+      toast.error("Ops, qualcosa è andato storto");
     }
   };
 
@@ -52,7 +52,7 @@ export function ChapterVideoForm(props: ChapterVideoFormProps) {
       if (response.data?.url) {
         onSubmit(response.data.url);
         setOnEditVideo(false);
-        toast.success("Video caricato con successo con Cloudinary! 🔥");
+        toast.success("Video caricato con successo con Cloudinary!");
       } else {
         throw new Error("No se recibió URL del servidor");
       }

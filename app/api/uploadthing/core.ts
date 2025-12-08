@@ -133,12 +133,12 @@ export const ourFileRouter = {
             data: { resources: updatedResources },
           });
           
-          console.log("[SERVER] ✅ File auto-saved to database successfully");
+          console.log("[SERVER] File auto-saved to database successfully");
         } catch (error) {
-          console.error("[SERVER] ❌ Error auto-saving file to database:", error);
+          console.error("[SERVER] Error auto-saving file to database:", error);
         }
       } else {
-        console.log("[SERVER] ⚠️ No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
         console.log("[SERVER] Metadata recibido:", metadata);
       }
       
@@ -241,12 +241,12 @@ export const ourFileRouter = {
             data: { resources: updatedResources },
           });
           
-          console.log("[SERVER] ✅ Image auto-saved to database successfully");
+          console.log("[SERVER] Image auto-saved to database successfully");
         } catch (error) {
-          console.error("[SERVER] ❌ Error auto-saving image to database:", error);
+          console.error("[SERVER] Error auto-saving image to database:", error);
         }
       } else {
-        console.log("[SERVER] ⚠️ No courseId/chapterId in metadata, skipping auto-save");
+        console.log("[SERVER] No courseId/chapterId in metadata, skipping auto-save");
         console.log("[SERVER] Metadata recibido:", metadata);
       }
       

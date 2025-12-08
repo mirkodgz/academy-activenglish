@@ -83,7 +83,7 @@ function SetPasswordForm() {
       });
 
       if (response.status === 200) {
-        toast.success("Password impostata con successo! 🎉 Ora puoi accedere.", {
+        toast.success("Password impostata con successo! Ora puoi accedere.", {
           duration: 3000,
         });
         // Redirigir al login después de 2 segundos

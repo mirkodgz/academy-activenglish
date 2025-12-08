@@ -60,7 +60,7 @@ export function FormCreateCourse() {
         slug: values.slug || generateSlug(values.courseName),
       });
       
-      toast.success("Corso creato correttamente 🎉");
+      toast.success("Corso creato correttamente");
       form.reset();
       
       // Pequeño delay para que se vea el toast

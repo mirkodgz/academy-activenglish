@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     const hasVerifiedDomain = process.env.RESEND_FROM_EMAIL?.includes("@activenglish") || process.env.RESEND_FROM_EMAIL?.includes("@academy.activenglish");
     const fromEmail = hasVerifiedDomain ? (process.env.RESEND_FROM_EMAIL || "noreply@academy.activenglish.it") : "onboarding@resend.dev";
 
-    console.log(`📧 Configuración de envío:`);
+    console.log(`[SEND-PASSWORD-LINKS] Configuración de envío:`);
     console.log(`   - RESEND_FROM_EMAIL: ${process.env.RESEND_FROM_EMAIL || "NO CONFIGURADO"}`);
     console.log(`   - Dominio verificado: ${hasVerifiedDomain ? "SÍ" : "NO"}`);
     console.log(`   - From Email: ${fromEmail}`);
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
     for (const purchase of students) {
       const student = purchase.user;
       
-      console.log(`\n📨 Procesando email para: ${student.email}`);
+      console.log(`\n[SEND-PASSWORD-LINKS] Procesando email para: ${student.email}`);
 
       try {
         // 1. Invalidar token existente (si existe)
@@ -110,15 +110,15 @@ export async function POST(req: Request) {
             identifier: student.email,
           },
         });
-        console.log(`🗑️ Tokens eliminados para ${student.email}: ${deletedTokens.count}`);
+        console.log(`[SEND-PASSWORD-LINKS] Tokens eliminados para ${student.email}: ${deletedTokens.count}`);
 
         // 2. Generar nuevo token único
         const token = crypto.randomUUID();
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días
-        console.log(`🔑 Token generado para ${student.email}:`);
+        console.log(`[SEND-PASSWORD-LINKS] Token generado para ${student.email}:`);
         console.log(`   Token completo: ${token}`);
         console.log(`   Token preview: ${token.substring(0, 20)}...`);
-        console.log(`⏰ Token expira en: ${expiresAt.toISOString()}`);
+        console.log(`[SEND-PASSWORD-LINKS] Token expira en: ${expiresAt.toISOString()}`);
 
         // 3. Guardar token en la BD
         const savedToken = await prisma.verificationToken.create({
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
             expires: expiresAt,
           },
         });
-        console.log(`✅ Token guardado en BD:`);
+        console.log(`[SEND-PASSWORD-LINKS] Token guardado en BD:`);
         console.log(`   Identifier: ${savedToken.identifier}`);
         console.log(`   Token guardado: ${savedToken.token}`);
         console.log(`   Expires: ${savedToken.expires.toISOString()}`);
@@ -138,22 +138,22 @@ export async function POST(req: Request) {
           where: { token: token },
         });
         if (verifyToken) {
-          console.log(`🔍 Verificación inmediata de token guardado: ✅ Encontrado`);
+          console.log(`[SEND-PASSWORD-LINKS] Verificación inmediata de token guardado: Encontrado`);
           console.log(`   Token en BD: ${verifyToken.token}`);
           console.log(`   Token generado: ${token}`);
           console.log(`   Token coincide: ${verifyToken.token === token}`);
           console.log(`   Longitud token BD: ${verifyToken.token.length}`);
           console.log(`   Longitud token generado: ${token.length}`);
         } else {
-          console.log(`🔍 Verificación inmediata de token guardado: ❌ NO encontrado`);
-          console.log(`   ⚠️ ERROR: El token se guardó pero no se puede encontrar inmediatamente después`);
+          console.log(`[SEND-PASSWORD-LINKS] Verificación inmediata de token guardado: NO encontrado`);
+          console.log(`   [SEND-PASSWORD-LINKS] ERROR: El token se guardó pero no se puede encontrar inmediatamente después`);
         }
 
         // 4. Construir URL del enlace - usar el token que se guardó en BD para asegurar consistencia
         const tokenToUse = savedToken.token; // Usar el token que realmente se guardó
         const passwordLink = `${urlBase}?token=${tokenToUse}`;
         
-        console.log(`🔗 Generando enlace para ${student.email}:`);
+        console.log(`[SEND-PASSWORD-LINKS] Generando enlace para ${student.email}:`);
         console.log(`   URL completa: ${passwordLink}`);
         console.log(`   Token usado en URL: ${tokenToUse}`);
         console.log(`   Token coincide con generado: ${tokenToUse === token}`);
@@ -171,14 +171,14 @@ export async function POST(req: Request) {
         
         // Si no hay placeholder {link}, agregar el enlace al final del mensaje
         if (!body.includes("{link}")) {
-          console.log(`⚠️ No se encontró placeholder {link} en el cuerpo del mensaje. Agregando enlace al final.`);
+          console.log(`[SEND-PASSWORD-LINKS] No se encontró placeholder {link} en el cuerpo del mensaje. Agregando enlace al final.`);
           emailBody += `\n\n<p style="margin-top: 20px; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #0b3d4d; border-radius: 4px;">`;
-          emailBody += `<strong>🔗 Enlace para establecer tu contraseña:</strong><br>`;
+          emailBody += `<strong>Enlace para establecer tu contraseña:</strong><br>`;
           emailBody += linkHtml;
           emailBody += `</p>`;
         }
         
-        console.log(`✅ Cuerpo del email procesado para ${student.email}. Incluye enlace: ${emailBody.includes(passwordLink)}`);
+        console.log(`[SEND-PASSWORD-LINKS] Cuerpo del email procesado para ${student.email}. Incluye enlace: ${emailBody.includes(passwordLink)}`);
 
         // 6. Enviar email
         const htmlContent = `
@@ -202,7 +202,7 @@ export async function POST(req: Request) {
           </html>
         `;
 
-        console.log(`📤 Intentando enviar email a ${student.email} desde ${fromEmail}...`);
+        console.log(`[SEND-PASSWORD-LINKS] Intentando enviar email a ${student.email} desde ${fromEmail}...`);
         
         let emailResult = await resend.emails.send({
           from: fromEmail,
@@ -211,7 +211,7 @@ export async function POST(req: Request) {
           html: htmlContent,
         });
 
-        console.log(`📥 Respuesta de Resend para ${student.email}:`, {
+        console.log(`[SEND-PASSWORD-LINKS] Respuesta de Resend para ${student.email}:`, {
           success: !emailResult.error,
           error: emailResult.error ? emailResult.error.message : null,
           data: emailResult.data ? { id: emailResult.data.id } : null,
@@ -220,10 +220,10 @@ export async function POST(req: Request) {
         // Si hay error y es por dominio no verificado, intentar con dominio de prueba
         if (emailResult.error) {
           const errorMessage = emailResult.error.message || "";
-          console.log(`❌ Error al enviar a ${student.email}:`, errorMessage);
+          console.log(`[SEND-PASSWORD-LINKS] Error al enviar a ${student.email}:`, errorMessage);
           
           if (errorMessage.includes("domain is not verified")) {
-            console.log(`⚠️ Dominio no verificado para ${student.email}. Intentando con dominio de prueba...`);
+            console.log(`[SEND-PASSWORD-LINKS] Dominio no verificado para ${student.email}. Intentando con dominio de prueba...`);
             
             // Intentar con dominio de prueba
             emailResult = await resend.emails.send({
@@ -239,7 +239,7 @@ export async function POST(req: Request) {
               // Si el error es que solo puede enviar a su propio email (limitación de Resend free)
               if (fallbackError.includes("only send testing emails to your own email")) {
                 const testingEmail = process.env.RESEND_TESTING_EMAIL || "support@activenglish.it";
-                console.log(`⚠️ Resend free solo permite enviar a tu propio email. Enviando a ${testingEmail} para testing...`);
+                console.log(`[SEND-PASSWORD-LINKS] Resend free solo permite enviar a tu propio email. Enviando a ${testingEmail} para testing...`);
                 
                 // Enviar a email de testing configurado
                 emailResult = await resend.emails.send({
@@ -255,7 +255,7 @@ export async function POST(req: Request) {
                       </head>
                       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                         <div style="background-color: #ff9800; padding: 15px; text-align: center; border-radius: 8px 8px 0 0;">
-                          <h2 style="color: #ffffff; margin: 0;">⚠️ EMAIL DE PRUEBA</h2>
+                          <h2 style="color: #ffffff; margin: 0;">EMAIL DE PRUEBA</h2>
                         </div>
                         <div style="background-color: #fff3cd; padding: 20px; border: 1px solid #ffc107;">
                           <p><strong>Este es un email de prueba.</strong></p>
@@ -280,14 +280,14 @@ export async function POST(req: Request) {
                   throw new Error(`No se pudo enviar email. Error: ${fallbackError}. Para enviar a otros destinatarios, verifica tu dominio en resend.com/domains`);
                 }
 
-                console.log(`✅ Email de prueba enviado a ${testingEmail} (destinatario original: ${student.email})`);
+                console.log(`[SEND-PASSWORD-LINKS] Email de prueba enviado a ${testingEmail} (destinatario original: ${student.email})`);
                 // No contar como enviado, pero tampoco como fallido - es un caso especial
                 results.sent++; // Contar como enviado para no bloquear el proceso
               } else {
                 throw new Error(fallbackError);
               }
             } else {
-              console.log(`✅ Email enviado usando dominio de prueba (onboarding@resend.dev) a ${student.email}`);
+              console.log(`[SEND-PASSWORD-LINKS] Email enviado usando dominio de prueba (onboarding@resend.dev) a ${student.email}`);
               results.sent++;
             }
           } else {
@@ -296,7 +296,7 @@ export async function POST(req: Request) {
           }
         } else {
           // Email enviado exitosamente sin errores
-          console.log(`✅ Email enviado exitosamente a ${student.email} desde ${fromEmail}`);
+          console.log(`[SEND-PASSWORD-LINKS] Email enviado exitosamente a ${student.email} desde ${fromEmail}`);
           results.sent++;
         }
       } catch (error) {
@@ -306,12 +306,12 @@ export async function POST(req: Request) {
           email: student.email,
           error: errorMessage,
         });
-        console.error(`❌ Error enviando email a ${student.email}:`, error);
+        console.error(`[SEND-PASSWORD-LINKS] Error enviando email a ${student.email}:`, error);
         console.error(`   Detalles del error:`, error instanceof Error ? error.stack : error);
       }
     }
     
-    console.log(`\n📊 Resumen del envío:`);
+    console.log(`\n[SEND-PASSWORD-LINKS] Resumen del envío:`);
     console.log(`   - Enviados: ${results.sent}`);
     console.log(`   - Fallidos: ${results.failed}`);
     console.log(`   - Errores:`, results.errors);
