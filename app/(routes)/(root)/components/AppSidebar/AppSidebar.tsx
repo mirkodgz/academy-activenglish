@@ -27,7 +27,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarHeader>
-          <Link href="/" className="flex flex-row items-center justify-center overflow-hidden">
+          <Link 
+            href="/" 
+            className="flex flex-row items-center justify-start overflow-visible"
+            style={{ paddingLeft: '20px', paddingTop: '10px' }}
+          >
             <Image
               src="/logoactiveenglish.png"
               alt="Logo Active English"

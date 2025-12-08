@@ -256,3 +256,4 @@ Una vez que funcione en local:
 - **Testing en producción**: Una vez desplegado, puedes probar directamente sin ngrok.
 
 
+
