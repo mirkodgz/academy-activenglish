@@ -13,12 +13,12 @@ export function ExploreCourses() {
       <div className="my-4 mx-6 border rounded-lg bg-card">
         <div className="grid grid-cols-1 md:grid-cols-[60%_40%] gap-4">
           <div className="p-6 flex flex-col gap-3">
-            <h1 className="text-4xl font-semibold text-card-foreground">
+            <h1 className="text-4xl font-medium text-card-foreground">
               Benvenuto su Active English 👋
             </h1>
             <p className="text-balance max-w-2xl text-muted-foreground">
-              La tua piattaforma di apprendimento online per migliorare le tue competenze. 
-              Esplora contenuti di qualità, impara al tuo ritmo e raggiungi i tuoi obiettivi. 
+              La tua piattaforma di apprendimento online per migliorare le tue competenze.
+              Esplora contenuti di qualità, impara al tuo ritmo e raggiungi i tuoi obiettivi.
               Inizia il tuo percorso di crescita oggi stesso!
             </p>
             <Button className="w-fit" onClick={() => router.push("/courses")}>

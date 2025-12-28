@@ -48,7 +48,7 @@ export function UsersList() {
       const response = await axios.get("/api/users");
       setUsers(response.data);
     } catch (error: unknown) {
-      const errorMessage = error && typeof error === 'object' && 'response' in error 
+      const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
         : undefined;
       toast.error(errorMessage || "Errore durante il caricamento degli utenti");
@@ -71,7 +71,7 @@ export function UsersList() {
       setDeletingUser(null);
       fetchUsers(); // Recargar la lista
     } catch (error: unknown) {
-      const errorMessage = error && typeof error === 'object' && 'response' in error 
+      const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
         : undefined;
       toast.error(errorMessage || "Errore durante l'eliminazione dell'utente");
@@ -99,7 +99,7 @@ export function UsersList() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <UserIcon className="w-5 h-5 text-primary" />
-            <h3 className="text-xl font-semibold text-foreground">Lista Utenti</h3>
+            <h3 className="text-xl font-medium text-foreground">Lista Utenti</h3>
           </div>
           <p className="text-sm text-muted-foreground">
             {users.length} {users.length === 1 ? "utente" : "utenti"}
@@ -131,11 +131,10 @@ export function UsersList() {
                     <TableCell>{user.lastName || "-"}</TableCell>
                     <TableCell>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.role === "ADMIN"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === "ADMIN"
                             ? "bg-secondary/20 text-secondary dark:bg-secondary/30 dark:text-secondary-foreground"
                             : "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground"
-                        }`}
+                          }`}
                       >
                         {user.role === "ADMIN" ? "Amministratore" : "Studente"}
                       </span>

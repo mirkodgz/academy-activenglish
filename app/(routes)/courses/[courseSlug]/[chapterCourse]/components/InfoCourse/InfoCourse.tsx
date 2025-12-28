@@ -33,7 +33,7 @@ export function InfoCourse(props: InfoCourseProps) {
 
       {videoUrl && (
         <div className="bg-card rounded-md p-4 shadow-md space-y-2">
-          <h2 className="text-2xl font-semibold text-card-foreground">{title}</h2>
+          <h2 className="text-2xl font-medium text-card-foreground">{title}</h2>
           <VideoCourse videoUrl={videoUrl} />
         </div>
       )}

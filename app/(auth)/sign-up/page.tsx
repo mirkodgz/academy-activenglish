@@ -14,7 +14,7 @@ import { useTheme } from "next-themes";
 export default function SignUpPage() {
   const router = useRouter();
   const { setTheme } = useTheme();
-  
+
   // Forzar tema claro en registro
   useEffect(() => {
     setTheme("light");
@@ -88,7 +88,7 @@ export default function SignUpPage() {
           />
         </div>
         <div className="text-center">
-          <h1 className="font-bold text-4xl text-[#0b3d4d] mb-2">
+          <h1 className="font-medium text-4xl text-[#0b3d4d] mb-2">
             Crea un account 🎓
           </h1>
           <p className="text-lg text-gray-600">

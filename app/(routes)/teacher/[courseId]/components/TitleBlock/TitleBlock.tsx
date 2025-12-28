@@ -8,7 +8,7 @@ export function TitleBlock(props: TitleBlockProps) {
       <div className="p-2 rounded-full bg-[#0b3d4d]">
         <Icon className="h-5 w-5 text-white" />
       </div>
-      <h3 className="text-xl font-semibold">{title}</h3>
+      <h3 className="text-xl font-medium">{title}</h3>
     </div>
   );
 }

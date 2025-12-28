@@ -34,7 +34,7 @@ export default async function CoursePage({
       </div>
 
       <div className="my-4 mx-6 border rounded-lg bg-card p-6">
-        <CourseContent chapters={infoCourse.chapters} />
+        <CourseContent chapters={infoCourse.chapters} courseSlug={infoCourse.slug} />
       </div>
     </div>
   );

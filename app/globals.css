@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-urbanist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter Placeholder", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --font-size-sm: 15px;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -119,7 +119,31 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    letter-spacing: -0.02em;
+    /* Letter spacing for body text */
+  }
+
+  /* Global Heading Styles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-medium;
+    /* font-weight: 500 */
+    letter-spacing: -0.03em;
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+
+    /* 
+       User requested line-height: 36px. 
+       Applying this as a default, but utilities (e.g. leading-tight) can override.
+       For larger headings (H1, H2), this might need manual override if text wraps.
+    */
+    line-height: 36px;
   }
 }

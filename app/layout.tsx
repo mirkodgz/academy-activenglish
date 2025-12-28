@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Urbanist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/Providers/SessionProvider";
 import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  // Inter supports weights 100-900 automatically, no need to specify array unless specific subset needed
 });
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className={`${urbanist.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider>
           <SessionProvider>
             <LayoutWrapper>

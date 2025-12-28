@@ -81,7 +81,7 @@ export function EditProfileForm({ user, onSuccess }: EditProfileFormProps) {
         onSuccess?.(); // Cerrar el modo de edición
       }
     } catch (error: unknown) {
-      const errorMessage = error && typeof error === 'object' && 'response' in error 
+      const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
         : undefined;
       toast.error(errorMessage || "Errore durante l'aggiornamento del profilo");
@@ -96,120 +96,120 @@ export function EditProfileForm({ user, onSuccess }: EditProfileFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Sezione: Informazioni di base */}
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+            <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wide mb-4">
               Informazioni di base
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium mb-2">
-                        <span className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          Nome
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Nome" 
-                          {...field}
-                          className="h-10"
-                        />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-sm font-medium mb-2">
+                      <span className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Nome
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nome"
+                        {...field}
+                        className="h-10"
+                      />
+                    </FormControl>
+                    <FormMessage className="mt-1" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium mb-2">
-                        <span className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          Cognome
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Cognome" 
-                          {...field}
-                          className="h-10"
-                        />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-sm font-medium mb-2">
+                      <span className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Cognome
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Cognome"
+                        {...field}
+                        className="h-10"
+                      />
+                    </FormControl>
+                    <FormMessage className="mt-1" />
+                  </FormItem>
+                )}
+              />
             </div>
+          </div>
 
-            {/* Sezione: Credenziali */}
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
-                Credenziali
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium mb-2">
-                        <span className="flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          Email <span className="text-red-500">*</span>
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="utente@example.com"
-                          {...field}
-                          className="h-10"
-                        />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </FormItem>
-                  )}
-                />
+          {/* Sezione: Credenziali */}
+          <div className="space-y-4 pt-4 border-t">
+            <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wide mb-4">
+              Credenziali
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-sm font-medium mb-2">
+                      <span className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Email <span className="text-red-500">*</span>
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="utente@example.com"
+                        {...field}
+                        className="h-10"
+                      />
+                    </FormControl>
+                    <FormMessage className="mt-1" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium mb-2">
-                        <span className="flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          Password
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Nuova password (opzionale)"
-                          {...field}
-                          className="h-10"
-                        />
-                      </FormControl>
-                      <FormDescription className="text-xs text-gray-500 mt-1">
-                        Lascia vuoto per mantenere la password attuale
-                      </FormDescription>
-                      <FormMessage className="mt-1" />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-sm font-medium mb-2">
+                      <span className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Password
+                      </span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nuova password (opzionale)"
+                        {...field}
+                        className="h-10"
+                      />
+                    </FormControl>
+                    <FormDescription className="text-xs text-gray-500 mt-1">
+                      Lascia vuoto per mantenere la password attuale
+                    </FormDescription>
+                    <FormMessage className="mt-1" />
+                  </FormItem>
+                )}
+              />
             </div>
+          </div>
 
           <div className="pt-6 border-t">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
               className="w-full md:w-auto min-w-[140px] bg-[#0b3d4d] hover:bg-[#0b3d4d]/90"
             >

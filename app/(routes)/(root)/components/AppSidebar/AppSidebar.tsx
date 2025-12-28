@@ -19,7 +19,7 @@ import { UserRole } from "@prisma/client";
 export function AppSidebar() {
   const { state } = useSidebar();
   const { data: session, status } = useSession();
-  
+
   // Obtener el rol del usuario desde la sesión
   const userRole = session?.user?.role as UserRole | null;
 
@@ -27,8 +27,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarHeader>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex flex-row items-center justify-start overflow-visible"
             style={{ paddingLeft: '20px', paddingTop: '10px' }}
           >
@@ -42,7 +42,7 @@ export function AppSidebar() {
           </Link>
         </SidebarHeader>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Piattaforma</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground font-medium">Piattaforma</SidebarGroupLabel>
           <SidebarMenu className="space-y-2">
             {routes.map((item) => (
               <SidebarMenuItem key={item.title}>
@@ -51,7 +51,7 @@ export function AppSidebar() {
                     <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                       <item.icon className="w-4 h-4" />
                     </div>
-                    {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
+                    {state === "expanded" && <span className="text-sidebar-foreground font-medium">{item.title}</span>}
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -61,7 +61,7 @@ export function AppSidebar() {
           {/* Rutas para Estudiantes */}
           {status === "authenticated" && userRole === "STUDENT" && (
             <SidebarMenu className="mt-4 space-y-2">
-              <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Studente</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground font-medium">Studente</SidebarGroupLabel>
               {routesStudent.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -69,7 +69,7 @@ export function AppSidebar() {
                       <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                         <item.icon className="w-4 h-4" />
                       </div>
-                      {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
+                      {state === "expanded" && <span className="text-sidebar-foreground font-medium">{item.title}</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -80,7 +80,7 @@ export function AppSidebar() {
           {/* Rutas para Administradores */}
           {status === "authenticated" && userRole === "ADMIN" && (
             <SidebarMenu className="mt-4 space-y-2">
-              <SidebarGroupLabel className="text-sidebar-foreground font-semibold">Admin</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-sidebar-foreground font-medium">Admin</SidebarGroupLabel>
               {routesTeacher.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -88,7 +88,7 @@ export function AppSidebar() {
                       <div className="p-1 rounded-lg text-white bg-[#0b3d4d]">
                         <item.icon className="w-4 h-4" />
                       </div>
-                      {state === "expanded" && <span className="text-sidebar-foreground font-semibold">{item.title}</span>}
+                      {state === "expanded" && <span className="text-sidebar-foreground font-medium">{item.title}</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

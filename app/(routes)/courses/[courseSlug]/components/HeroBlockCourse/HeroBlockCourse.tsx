@@ -54,13 +54,13 @@ export function HeroBlockCourse(props: HeroBlockCourseProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-3xl font-semibold">{title}</h2>
+          <h1 className="text-3xl font-medium mb-2">{course.title}</h1>
           {/* Por ahora todos los cursos son webinar */}
           <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium shadow-md">
             webinar
           </span>
         </div>
-        
+
         {description && (
           <p className="text-balance text-muted-foreground leading-relaxed">{description}</p>
         )}

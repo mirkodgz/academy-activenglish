@@ -13,7 +13,7 @@ export function ListCourses(props: ListCoursesProps) {
             <BookOpen className="w-12 h-12 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-card-foreground mb-2">
+            <h3 className="text-xl font-medium text-card-foreground mb-2">
               Nessun corso creato
             </h3>
             <p className="text-muted-foreground max-w-md">
@@ -29,11 +29,11 @@ export function ListCourses(props: ListCoursesProps) {
   return (
     <div className="flex flex-col my-4 mx-6 border rounded-lg bg-card p-6 gap-6">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-card-foreground">
+        <h2 className="text-lg font-medium text-card-foreground">
           Tutti i corsi ({courses.length})
         </h2>
       </div>
-      
+
       <div className="space-y-6">
         {courses.map((course, index) => (
           <div key={course.id}>
