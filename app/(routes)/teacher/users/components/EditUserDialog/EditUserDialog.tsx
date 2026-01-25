@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import axios from "axios";
 import { toast } from "sonner";
+import { BookOpen } from "lucide-react";
 
 import {
   Dialog,
@@ -63,6 +64,12 @@ interface EditUserDialogProps {
   onSuccess: () => void;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  slug: string;
+}
+
 export function EditUserDialog({
   user,
   open,
@@ -70,6 +77,10 @@ export function EditUserDialog({
   onSuccess,
 }: EditUserDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [isAssigningCourse, setIsAssigningCourse] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -82,6 +93,26 @@ export function EditUserDialog({
     },
   });
 
+  const selectedRole = form.watch("role");
+
+  // Cargar cursos al abrir el diálogo
+  useEffect(() => {
+    if (open) {
+      const fetchCourses = async () => {
+        try {
+          setIsLoadingCourses(true);
+          const response = await axios.get("/api/courses");
+          setCourses(response.data.courses || []);
+        } catch {
+          toast.error("Errore durante il caricamento dei corsi");
+        } finally {
+          setIsLoadingCourses(false);
+        }
+      };
+      fetchCourses();
+    }
+  }, [open]);
+
   // Resetear el formulario cuando cambia el usuario
   useEffect(() => {
     if (open && user) {
@@ -92,6 +123,7 @@ export function EditUserDialog({
         lastName: user.lastName || "",
         role: user.role,
       });
+      setSelectedCourseId("");
     }
   }, [open, user, form]);
 
@@ -119,6 +151,33 @@ export function EditUserDialog({
       toast.error(errorMessage || "Errore durante l'aggiornamento dell'utente");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAssignCourse = async () => {
+    if (!selectedCourseId) {
+      toast.error("Seleziona un corso");
+      return;
+    }
+
+    setIsAssigningCourse(true);
+    try {
+      const response = await axios.post(`/api/users/${user.id}/assign-course`, {
+        courseId: selectedCourseId,
+      });
+
+      if (response.status === 200) {
+        toast.success("Corso assegnato con successo");
+        setSelectedCourseId("");
+        onSuccess(); // Recargar la lista
+      }
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        : undefined;
+      toast.error(errorMessage || "Errore durante l'assegnazione del corso");
+    } finally {
+      setIsAssigningCourse(false);
     }
   };
 
@@ -270,6 +329,57 @@ export function EditUserDialog({
                 />
               </div>
             </div>
+
+            {/* Sezione: Assegnazione corso (solo per studenti) */}
+            {(selectedRole === "STUDENT" || user.role === "STUDENT") && (
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
+                  Assegnazione Corso
+                </h4>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium mb-2 block">
+                      <BookOpen className="w-4 h-4 inline mr-2" />
+                      Corso da assegnare
+                    </label>
+                    <Select
+                      value={selectedCourseId}
+                      onValueChange={setSelectedCourseId}
+                      disabled={isLoadingCourses || isAssigningCourse}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder={isLoadingCourses ? "Caricamento corsi..." : "Seleziona un corso"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Assegna un corso a questo studente. Lo studente avrà accesso immediato al corso.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAssignCourse}
+                    disabled={!selectedCourseId || isAssigningCourse || isLoadingCourses}
+                    className="mb-0"
+                  >
+                    {isAssigningCourse ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                        Assegnazione...
+                      </span>
+                    ) : (
+                      "Assegna corso"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <DialogFooter className="pt-6 border-t gap-3">
               <Button

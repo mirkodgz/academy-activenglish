@@ -15,6 +15,8 @@ export const getPurchasedCourses = async (): Promise<
     const userIsStudent = await isStudent();
 
     // Si es estudiante, mostrar SOLO los cursos que ha comprado (Purchase)
+    // Nota: No filtramos por isPublished porque si un admin asignó un curso,
+    // el estudiante debe poder verlo aunque no esté publicado públicamente
     if (userIsStudent) {
       const purchasedCourses = await prisma.course.findMany({
         where: {
@@ -23,7 +25,7 @@ export const getPurchasedCourses = async (): Promise<
               userId: user.id,
             },
           },
-          isPublished: true,
+          // Removido isPublished: true para que los cursos asignados por admin sean visibles
         },
         include: {
           chapters: {
@@ -44,6 +46,7 @@ export const getPurchasedCourses = async (): Promise<
     }
 
     // Para otros roles (ADMIN), mostrar solo los cursos comprados
+    // Nota: No filtramos por isPublished para consistencia
     const purchasedCourses = await prisma.course.findMany({
       where: {
         purchases: {
@@ -51,7 +54,7 @@ export const getPurchasedCourses = async (): Promise<
             userId: user.id,
           },
         },
-        isPublished: true,
+        // Removido isPublished: true para que los cursos asignados sean visibles
       },
       include: {
         chapters: {

@@ -17,10 +17,11 @@ export const getIsPurchasedCourse = async (
       },
     });
 
-    // Si es estudiante, necesita Purchase y el curso debe estar publicado
+    // Si es estudiante, necesita Purchase (no verificamos isPublished porque
+    // si un admin asignó el curso, el estudiante debe poder acceder aunque no esté publicado)
     const userIsStudent = await isStudent();
     if (userIsStudent) {
-      return purchase ? (purchase.course.isPublished || false) : false;
+      return !!purchase; // Solo verificamos que tenga Purchase, no si está publicado
     }
 
     // Para otros roles (ADMIN), verificar si tienen compra

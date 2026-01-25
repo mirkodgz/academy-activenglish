@@ -20,8 +20,9 @@ export const getPurchaseCourseById = async (
           course: true,
         },
       });
-      // El estudiante tiene acceso solo si tiene Purchase y el curso está publicado
-      return purchase ? (purchase.course.isPublished || false) : false;
+      // El estudiante tiene acceso si tiene Purchase (no verificamos isPublished porque
+      // si un admin asignó el curso, el estudiante debe poder acceder aunque no esté publicado)
+      return !!purchase; // Solo verificamos que tenga Purchase, no si está publicado
     }
 
     // Para otros roles, verificar si tienen compra
